@@ -48,7 +48,7 @@ Next, add the card to your `resources/views/vendor/pulse/dashboard.php`:
 </x-pulse>
 ```
 
-Finally, get to improving your user experience. At LaraconEU I gave a [talk on how much our validation sucks](https://www.youtube.com/watch?v=NcucthcnGY0). If you are here, you likely also care about how your users experience validation errors on your app, so I'd love you to give it a watch.
+Finally, get to improving your user experience. At LaraconUS I gave a [talk on how much our validation sucks](https://youtu.be/MMc2TzBY6l4?si=UEu8dLuRK4XT30yK). If you are here, you likely also care about how your users experience validation errors on your app, so I'd love you to give it a watch.
 
 
 ## Features
