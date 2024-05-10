@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit colors="true">
+    <testsuites>
+        <testsuite name="testsuite">
+            <directory suffix="Test.php">./tests/</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_KEY" value="base64:vFI2dJxJeGFdbe7JXMJkE6iIv0dKBCNBw/9hZJVF/UM="/>
+        <env name="DB_CONNECTION" value="testing"/>
+    </php>
+</phpunit>
+
