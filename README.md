@@ -23,6 +23,7 @@ return [
         TiMacDonald\Pulse\Recorders\ValidationErrors::class => [
             'enabled' => env('PULSE_VALIDATION_ERRORS_ENABLED', true),
             'sample_rate' => env('PULSE_VALIDATION_ERRORS_SAMPLE_RATE', 1),
+            'capture_messages' => false,
             'ignore' => [
                 // '#^/login$#',
                 // '#^/register$#',
