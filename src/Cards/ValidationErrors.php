@@ -52,6 +52,7 @@ class ValidationErrors extends Card
             'config' => [
                 'enabled' => true,
                 'sample_rate' => 1,
+                'capture_messages' => false,
                 'ignore' => [],
                 ...Config::get('pulse.recorders.'.ValidationErrorsRecorder::class, []),
             ],
