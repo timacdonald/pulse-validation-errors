@@ -31,7 +31,7 @@ class ValidationErrors extends Card
                 ['count'],
                 $this->periodAsInterval(),
             )->map(function ($row) {
-                [$method, $uri, $action, $bag, $name] = json_decode($row->key, flags: JSON_THROW_ON_ERROR);
+                [$method, $uri, $action, $bag, $name, $message] = json_decode($row->key, flags: JSON_THROW_ON_ERROR) + [5 => null];
 
                 return (object) [
                     'bag' => $bag,
@@ -39,6 +39,7 @@ class ValidationErrors extends Card
                     'name' => $name,
                     'action' => $action,
                     'method' => $method,
+                    'message' => $message,
                     'count' => $row->count,
                 ];
             }),
@@ -48,7 +49,12 @@ class ValidationErrors extends Card
             'time' => $time,
             'runAt' => $runAt,
             'validationErrors' => $validationErrors,
-            'config' => Config::get('pulse.recorders.'.ValidationErrorsRecorder::class),
+            'config' => [
+                'enabled' => true,
+                'sample_rate' => 1,
+                'ignore' => [],
+                ...Config::get('pulse.recorders.'.ValidationErrorsRecorder::class, []),
+            ],
         ]);
     }
 

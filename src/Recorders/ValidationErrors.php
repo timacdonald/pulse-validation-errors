@@ -78,7 +78,6 @@ class ValidationErrors
     {
         return $this->parseSessionValidationErrors($request, $response)
             ?? $this->parseJsonValidationErrors($request, $response)
-            ?? $this->parseInertiaValidationErrors($request, $response)
             ?? $this->parseUnknownValidationErrors($request, $response)
             ?? collect([]);
     }
@@ -96,6 +95,14 @@ class ValidationErrors
             ! ($errors = $request->session()->get('errors', null)) instanceof ViewErrorBag
         ) {
             return null;
+        }
+
+        if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages')) {
+            return collect($errors->getBags())
+                ->flatMap(fn ($bag, $bagName) => collect($bag->messages())
+                    ->flatMap(fn ($messages, $inputName) => array_map(
+                        fn ($message) => [$bagName, $inputName, $message], $messages)
+                    ));
         }
 
         return collect($errors->getBags())->flatMap(
@@ -121,36 +128,13 @@ class ValidationErrors
             return null;
         }
 
+        if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages')) {
+            return collect($errors)->flatMap(fn ($messages, $inputName) => array_map(
+                fn ($message) => ['default', $inputName, $message], $messages)
+            );
+        }
+
         return collect($errors)->keys()->map(fn ($inputName) => ['default', $inputName]);
-    }
-
-    /**
-     * Parse Inertia validation errors.
-     *
-     * @return null|\Illuminate\Support\Collection<int, array{ 0: string, 1: string }>
-     */
-    protected function parseInertiaValidationErrors(Request $request, SymfonyResponse $response): ?Collection
-    {
-        if (
-            $request->isMethodSafe() ||
-            ! $request->header('X-Inertia') ||
-            ! $response instanceof JsonResponse ||
-            ! is_array($response->original) ||
-            ! array_key_exists('props', $response->original) ||
-            ! is_array($response->original['props']) ||
-            ! array_key_exists('errors', $response->original['props']) ||
-            ! ($errors = $response->original['props']['errors']) instanceof stdClass
-        ) {
-            return null;
-        }
-
-        if (is_string(($errors = collect($errors))->first())) {
-            return $errors->keys()->map(fn ($inputName) => ['default', $inputName]);
-        }
-
-        return $errors->flatMap(
-            fn ($bag, $bagName) => collect($bag)->keys()->map(fn ($inputName) => [$bagName, $inputName])
-        );
     }
 
     /**
@@ -164,6 +148,10 @@ class ValidationErrors
             return null;
         }
 
-        return collect([['default', '__laravel_unknown']]);
+        return collect([[
+            'default',
+            '__laravel_unknown',
+            ...($this->config->get('pulse.recorders.'.static::class.'.capture_messages') ? ['__laravel_unknown'] : [])
+        ]]);
     }
 }
