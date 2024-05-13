@@ -97,7 +97,7 @@ class ValidationErrors
             return null;
         }
 
-        if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages')) {
+        if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true)) {
             return collect($errors->getBags())
                 ->flatMap(fn ($bag, $bagName) => collect($bag->messages())
                     ->flatMap(fn ($messages, $inputName) => array_map(
@@ -128,7 +128,7 @@ class ValidationErrors
             return null;
         }
 
-        if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages')) {
+        if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true)) {
             return collect($errors)->flatMap(fn ($messages, $inputName) => array_map(
                 fn ($message) => ['default', $inputName, $message], $messages)
             );
@@ -151,7 +151,7 @@ class ValidationErrors
         return collect([[
             'default',
             '__laravel_unknown',
-            ...($this->config->get('pulse.recorders.'.static::class.'.capture_messages') ? ['__laravel_unknown'] : [])
+            ...($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true) ? ['__laravel_unknown'] : [])
         ]]);
     }
 }

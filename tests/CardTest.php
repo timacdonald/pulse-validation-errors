@@ -18,7 +18,7 @@ it('renders', function () {
     Pulse::ingest();
 
     Livewire::test(ValidationErrors::class, ['lazy' => false])
-        ->assertViewHas('validationErrors', function ($errors) {
+        ->assertViewHas('errors', function ($errors) {
             expect($errors)->toHaveCount(1);
 
             expect($errors[0])->toEqual(literal(
@@ -50,7 +50,7 @@ it('optionally supports', function () {
     Pulse::ingest();
 
     Livewire::test(ValidationErrors::class, ['lazy' => false])
-        ->assertViewHas('validationErrors', function ($errors) {
+        ->assertViewHas('errors', function ($errors) {
             expect($errors)->toHaveCount(1);
 
             expect($errors[0])->toEqual(literal(

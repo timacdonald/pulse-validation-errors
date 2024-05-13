@@ -25,7 +25,7 @@ class ValidationErrors extends Card
      */
     public function render(): Renderable
     {
-        [$validationErrors, $time, $runAt] = $this->remember(
+        [$errors, $time, $runAt] = $this->remember(
             fn () => Pulse::aggregate(
                 'validation_error',
                 ['count'],
@@ -34,13 +34,17 @@ class ValidationErrors extends Card
                 [$method, $uri, $action, $bag, $name, $message] = json_decode($row->key, flags: JSON_THROW_ON_ERROR) + [5 => null];
 
                 return (object) [
-                    'bag' => $bag,
+                    'bag' => match ($bag) {
+                        'default' => null,
+                        default => $bag,
+                    },
                     'uri' => $uri,
                     'name' => $name,
                     'action' => $action,
                     'method' => $method,
                     'message' => $message,
                     'count' => $row->count,
+                    'key_hash' => md5($row->key),
                 ];
             }),
         );
@@ -48,11 +52,11 @@ class ValidationErrors extends Card
         return View::make('timacdonald::validation-errors', [
             'time' => $time,
             'runAt' => $runAt,
-            'validationErrors' => $validationErrors,
+            'errors' => $errors,
             'config' => [
                 'enabled' => true,
                 'sample_rate' => 1,
-                'capture_messages' => false,
+                'capture_messages' => true,
                 'ignore' => [],
                 ...Config::get('pulse.recorders.'.ValidationErrorsRecorder::class, []),
             ],
