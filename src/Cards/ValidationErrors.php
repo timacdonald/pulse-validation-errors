@@ -51,4 +51,14 @@ class ValidationErrors extends Card
             'config' => Config::get('pulse.recorders.'.ValidationErrorsRecorder::class),
         ]);
     }
+
+    /**
+     * Define any CSS that should be loaded for the component.
+     *
+     * @return string|\Illuminate\Contracts\Support\Htmlable|array<int, string|\Illuminate\Contracts\Support\Htmlable>|null
+     */
+    protected function css()
+    {
+        return __DIR__.'/../../dist/validation.css';
+    }
 }
