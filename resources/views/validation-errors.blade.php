@@ -18,8 +18,7 @@
             <x-pulse::table>
                 <x-pulse::thead>
                     <tr>
-                        <x-pulse::th>Input</x-pulse::th>
-                        <x-pulse::th>Via</x-pulse::th>
+                        <x-pulse::th>Error</x-pulse::th>
                         <x-pulse::th class="text-right">Count</x-pulse::th>
                     </tr>
                 </x-pulse::thead>
@@ -27,32 +26,21 @@
                     @foreach ($errors->take(100) as $error)
                         <tr wire:key="{{ $error->key_hash }}-spacer" class="h-2 first:h-0"></tr>
                         <tr wire:key="{{ $error->key_hash }}">
-                            <x-pulse::td class="overflow-hidden max-w-32 md:max-w-64 space-y-2">
-                                <div class="break-words font-mono" title="{{ $error->name }}">
-                                    {{ $error->name }}{{ $error->bag ? '@'.$error->bag : '' }}
+                            <x-pulse::td class="overflow-hidden max-w-[1px] space-y-2">
+                                <div class="truncate" title="[{{ $error->name }}{{ $error->bag ? '@'.$error->bag : '' }}] {{ $error->message }}">
+                                    <span class="font-mono">[{{ $error->name }}{{ $error->bag ? '@'.$error->bag : '' }}]</span> <span class="text-gray-500 dark:text-gray-400">{{ $error->message }}</span>
                                 </div>
-                                <div class="break-words truncate" title="{{ $error->message }}">
-                                    {{ $error->message }}
+                                <div class="flex gap-2">
+                                    <x-pulse::http-method-badge :method="$error->method" />
+                                    <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $error->uri }}">
+                                        {{ $error->uri }}
+                                    </code>
                                 </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate" title="{{ $error->action }}">
+                                    {{ $error->action }}
+                                </p>
                             </x-pulse::td>
-                            <x-pulse::td class="overflow-hidden max-w-[1px]">
-                                <div class="flex flex-col">
-                                    <div class="mt-2">
-                                        <div class="flex gap-2">
-                                            <x-pulse::http-method-badge :method="$error->method" />
-                                            <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $error->uri }}">
-                                                {{ $error->uri }}
-                                            </code>
-                                        </div>
-                                    </div>
-                                    @if ($error->action)
-                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" table="{{ $error->action }}">
-                                            {{ $error->action }}
-                                        </p>
-                                    @endif
-                                </div>
-                            </x-pulse>
-                            <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
+                            <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold w-32">
                                 @if ($config['sample_rate'] < 1)
                                     <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($error->count) }}">~{{ number_format($error->count * (1 / $config['sample_rate'])) }}</span>
                                 @else
