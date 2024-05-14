@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Middleware as InertiaMiddleware;
 use Laravel\Pulse\Facades\Pulse;
+use Livewire\Livewire;
 use Symfony\Component\HttpFoundation\JsonResponse as SymfonyJsonResponse;
+use Tests\TestClasses\DummyComponent;
 use TiMacDonald\Pulse\Recorders\ValidationErrors;
 
 use function Pest\Laravel\post;
@@ -102,6 +104,25 @@ it('captures validation errors from the session with multiple bags', function ()
         '["POST","\/users","Closure","custom_2","email"]',
     ]);
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 12, 'count'));
+    expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
+});
+
+it('captures validation errors from livewire components', function () {
+    Livewire::component('dummy', DummyComponent::class);
+
+    Livewire::test(DummyComponent::class)
+        ->call('save')
+        ->assertHasErrors('name');
+
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    expect($entries)->toHaveCount(1);
+
+    expect($entries[0]->key)->toContain('livewire: dummy');
+    expect($entries[0]->key)->toContain('"name"');
+
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, $entries[0]->key));
+    expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
 });
 

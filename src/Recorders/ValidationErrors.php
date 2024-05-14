@@ -8,12 +8,15 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ViewErrorBag;
+use Illuminate\Validation\ValidationException;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Recorders\Concerns\Ignores;
 use Laravel\Pulse\Recorders\Concerns\LivewireRoutes;
 use Laravel\Pulse\Recorders\Concerns\Sampling;
-use stdClass;
+use Livewire\Component;
+use Throwable;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use function Livewire\on;
 
 /**
  * @internal
@@ -39,6 +42,33 @@ class ValidationErrors
         protected Repository $config,
     ) {
         //
+    }
+
+    public function register()
+    {
+        on('exception', function (Component $component, Throwable $exception) {
+            if (! $exception instanceof ValidationException) {
+                return;
+            }
+
+            //$this->pulse->lazy(function () use ($component, $exception) {
+                if (! $this->shouldSample()) {
+                    return;
+                }
+
+                $request = request();
+                [$path] = $this->resolveRoutePath($request);
+
+                if ($this->shouldIgnore($path)) {
+                    return;
+                }
+
+                $this->parseExceptionValidationErrors($exception)?->each(fn ($values) => $this->pulse->record(
+                    'validation_error',
+                    json_encode([$request->method(), $path, "livewire: {$component->getName()}", ...$values], flags: JSON_THROW_ON_ERROR),
+                )->count());
+            //});
+        });
     }
 
     /**
@@ -108,6 +138,23 @@ class ValidationErrors
         return collect($errors->getBags())->flatMap(
             fn ($bag, $bagName) => array_map(fn ($inputName) => [$bagName, $inputName], $bag->keys())
         );
+    }
+
+    /**
+     * Parse exception validation errors.
+     *
+     * @return null|\Illuminate\Support\Collection<int, array{ 0: string, 1: string }>
+     */
+    protected function parseExceptionValidationErrors(ValidationException $exception): ?Collection
+    {
+        if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true)) {
+            return collect($exception->errors())
+                ->flatMap(fn ($messages, $inputName) => array_map(
+                    fn ($message) => [$exception->errorBag, $inputName, $message], $messages)
+                );
+        }
+
+        return collect($exception->errors())->keys();
     }
 
     /**
