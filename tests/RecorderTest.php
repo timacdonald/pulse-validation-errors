@@ -30,6 +30,7 @@ afterEach(function () {
 });
 
 it('captures validation errors from the session', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', fn () => Request::validate([
         'email' => 'required',
     ]))->middleware('web');
@@ -48,6 +49,7 @@ it('captures validation errors from the session', function () {
 });
 
 it('captures validation errors from the session with dedicated bags', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', fn () => Request::validateWithBag('foo', [
         'email' => 'required',
     ]))->middleware('web');
@@ -66,6 +68,7 @@ it('captures validation errors from the session with dedicated bags', function (
 });
 
 it('captures validation errors from the session with multiple bags', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', function () {
         return Redirect::back()->withErrors(['email' => 'The email field is required.'])
             ->withErrors(['email' => 'The email field is required.'], 'custom_1')
@@ -103,6 +106,7 @@ it('captures validation errors from the session with multiple bags', function ()
 });
 
 it('does not capture validation errors from redirects when there is no session', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', fn () => Request::validate([
         'email' => 'required',
     ]));
@@ -117,6 +121,7 @@ it('does not capture validation errors from redirects when there is no session',
 });
 
 it('does not capture validation errors from redirects when the "errors" key is not a ViewErrorBag with session', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', fn () => redirect()->back()->with('errors', 'Something happened!'))->middleware('web');
 
     $response = post('users');
@@ -129,6 +134,7 @@ it('does not capture validation errors from redirects when the "errors" key is n
 });
 
 it('captures one entry for a field when multiple errors are present for the given field from the session', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', fn () => Request::validate([
         'email' => 'string|min:5',
     ]))->middleware('web');
@@ -155,6 +161,7 @@ it('captures one entry for a field when multiple errors are present for the give
 });
 
 it('captures a generic error when it is unable to parse the validation error fields from the session', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', fn () => response('<p>An error occurred.</p>', 422))->middleware('web');
 
     $response = post('users');
@@ -170,6 +177,7 @@ it('captures a generic error when it is unable to parse the validation error fie
 });
 
 it('captures API validation errors', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', fn () => Request::validate([
         'email' => 'required',
     ]))->middleware('api');
@@ -188,6 +196,7 @@ it('captures API validation errors', function () {
 });
 
 it('captures "unknown" API validation error for non Illuminate Json responses', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', fn () => new SymfonyJsonResponse(['errors' => ['email' => 'Is required.']], 422))
         ->middleware('api');
 
@@ -205,6 +214,7 @@ it('captures "unknown" API validation error for non Illuminate Json responses', 
 });
 
 it('captures "unknown" API validation error for non array Json content', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', fn () => new IlluminateJsonResponse('An error occurred.', 422))
         ->middleware('api');
 
@@ -221,6 +231,7 @@ it('captures "unknown" API validation error for non array Json content', functio
 });
 
 it('captures "unknown" API validation error for array content mising "errors" key', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', fn () => new IlluminateJsonResponse(['An error occurred.'], 422))
         ->middleware('api');
 
@@ -237,6 +248,7 @@ it('captures "unknown" API validation error for array content mising "errors" ke
 });
 
 it('captures "unknown" API validation error for "errors" key that does not contain an array', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', fn () => new IlluminateJsonResponse(['errors' => 'An error occurred.'], 422))
         ->middleware('api');
 
@@ -253,6 +265,7 @@ it('captures "unknown" API validation error for "errors" key that does not conta
 });
 
 it('captures "unknown" API validation error for "errors" key that contains a list', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', fn () => new IlluminateJsonResponse(['errors' => ['An error occurred.']], 422))
         ->middleware('api');
 
@@ -269,6 +282,7 @@ it('captures "unknown" API validation error for "errors" key that contains a lis
 });
 
 it('captures inertia validation errors', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', fn () => Request::validate([
         'email' => 'required',
     ]))->middleware(['web', InertiaMiddleware::class]);
@@ -286,6 +300,7 @@ it('captures inertia validation errors', function () {
 });
 
 it('captures inertia validation errors with multiple bags', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
     Route::post('users', function () {
         return Redirect::back()->withErrors(['email' => 'The email field is required.'])
             ->withErrors(['email' => 'The email field is required.'], 'custom_1')
