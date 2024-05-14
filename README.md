@@ -2,7 +2,7 @@
 
 A card for Laravel Pulse to show validation errors impacting users.
 
-<p align="center"><img src="https://raw.githubusercontent.com/timacdonald/pulse-validation-errors/main/art/screenshot.jpg" alt="Validation errors card for Laravel Pulse"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/timacdonald/pulse-validation-errors/main/art/screenshot.png" alt="Validation errors card for Laravel Pulse"></p>
 
 ## Installation
 
