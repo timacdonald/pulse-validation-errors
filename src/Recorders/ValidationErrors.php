@@ -16,7 +16,7 @@ use Laravel\Pulse\Recorders\Concerns\Sampling;
 use Livewire\Component;
 use Throwable;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
-use function Livewire\on;
+use Livewire\Livewire;
 
 /**
  * @internal
@@ -46,7 +46,7 @@ class ValidationErrors
 
     public function register()
     {
-        on('exception', function (Component $component, Throwable $exception) {
+        Livewire::listen('exception', function (Component $component, Throwable $exception) {
             if (! $exception instanceof ValidationException) {
                 return;
             }
