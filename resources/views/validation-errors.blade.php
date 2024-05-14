@@ -12,53 +12,39 @@
     </x-pulse::card-header>
 
     <x-pulse::scroll :expand="$expand" wire:poll.5s="">
-        @if ($validationErrors->isEmpty())
+        @if ($errors->isEmpty())
             <x-pulse::no-results />
         @else
             <x-pulse::table>
                 <x-pulse::thead>
                     <tr>
-                        <x-pulse::th>Input</x-pulse::th>
-                        <x-pulse::th>Via</x-pulse::th>
+                        <x-pulse::th>Error</x-pulse::th>
                         <x-pulse::th class="text-right">Count</x-pulse::th>
                     </tr>
                 </x-pulse::thead>
                 <tbody>
-                    @foreach ($validationErrors->take(100) as $validationError)
-                        <tr class="h-2 first:h-0"></tr>
-                        <tr wire:key="{{ $validationError->method.$validationError->uri.$validationError->name.$this->period }}">
-                            <x-pulse::td class="overflow-hidden max-w-32 md:max-w-64">
-                                <div class="break-words" title="{{ $validationError->name }}">
-                                    {{ $validationError->name }}
+                    @foreach ($errors->take(100) as $error)
+                        <tr wire:key="{{ $error->key_hash }}-spacer" class="h-2 first:h-0"></tr>
+                        <tr wire:key="{{ $error->key_hash }}">
+                            <x-pulse::td class="overflow-hidden max-w-[1px] space-y-2">
+                                <div class="truncate" title="[{{ $error->name }}{{ $error->bag ? '@'.$error->bag : '' }}] {{ $error->message }}">
+                                    <span class="font-mono">[{{ $error->name }}{{ $error->bag ? '@'.$error->bag : '' }}]</span> <span class="text-gray-500 dark:text-gray-400">{{ $error->message }}</span>
                                 </div>
-                                @if ($validationError->bag !== 'default')
-                                    <div class="mt-1 text-xs text-gray-500 dark:text-gray-400 break-words" title="Error bag: {{ $validationError->bag }}">
-                                        {{ '@'.$validationError->bag }}
-                                    </div>
-                                @endif
+                                <div class="flex gap-2">
+                                    <x-pulse::http-method-badge :method="$error->method" />
+                                    <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $error->uri }}">
+                                        {{ $error->uri }}
+                                    </code>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate" title="{{ $error->action }}">
+                                    {{ $error->action }}
+                                </p>
                             </x-pulse::td>
-                            <x-pulse::td class="overflow-hidden max-w-[1px]">
-                                <div class="flex flex-col">
-                                    <div class="mt-2">
-                                        <div class="flex gap-2">
-                                            <x-pulse::http-method-badge :method="$validationError->method" />
-                                            <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="{{ $validationError->uri }}">
-                                                {{ $validationError->uri }}
-                                            </code>
-                                        </div>
-                                    </div>
-                                    @if ($validationError->action)
-                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate" table="{{ $validationError->action }}">
-                                            {{ $validationError->action }}
-                                        </p>
-                                    @endif
-                                </div>
-                            </x-pulse>
-                            <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
+                            <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold w-32">
                                 @if ($config['sample_rate'] < 1)
-                                    <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($validationError->count) }}">~{{ number_format($validationError->count * (1 / $config['sample_rate'])) }}</span>
+                                    <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($error->count) }}">~{{ number_format($error->count * (1 / $config['sample_rate'])) }}</span>
                                 @else
-                                    {{ number_format($validationError->count) }}
+                                    {{ number_format($error->count) }}
                                 @endif
                             </x-pulse::td>
                         </tr>
@@ -66,7 +52,7 @@
                 </tbody>
             </x-pulse::table>
 
-            @if ($validationErrors->count() > 100)
+            @if ($errors->count() > 100)
                 <div class="mt-2 text-xs text-gray-400 text-center">Limited to 100 entries</div>
             @endif
         @endif

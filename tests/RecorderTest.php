@@ -292,7 +292,7 @@ it('captures inertia validation errors with multiple bags', function () {
             ->withErrors(['email' => 'The email field is required.'], 'custom_2');
     })->middleware(['web', InertiaMiddleware::class]);
 
-    $response = post('users');
+    $response = post('users', [], ['X-Inertia' => '1']);
 
     $response->assertStatus(302);
     $response->assertInvalid('email');
@@ -319,5 +319,114 @@ it('captures inertia validation errors with multiple bags', function () {
         '["POST","\/users","Closure","custom_2","email"]',
     ]);
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 12, 'count'));
+    expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
+});
+
+it('can capture messages for session based validation errors', function () {
+    Route::post('users', fn () => Request::validate([
+        'email' => 'required',
+    ]))->middleware('web');
+
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', true);
+    $response = post('users');
+
+    $response->assertStatus(302);
+    $response->assertInvalid('email');
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email","The email field is required."]');
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","email","The email field is required."]'));
+    expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
+    expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
+});
+
+it('can capture messages for API based validation errors', function () {
+    Route::post('users', fn () => Request::validate([
+        'email' => 'required',
+    ]))->middleware('api');
+
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', true);
+    $response = postJson('users');
+
+    $response->assertStatus(422);
+    $response->assertInvalid('email');
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email","The email field is required."]');
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","email","The email field is required."]'));
+    expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
+    expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
+});
+
+it('can capture messages for inertia based validation errors', function () {
+    Route::post('users', fn () => Request::validate([
+        'email' => 'required',
+    ]))->middleware(['web', InertiaMiddleware::class]);
+
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', true);
+    $response = post('users', [], ['X-Inertia' => '1']);
+
+    $response->assertStatus(302);
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email","The email field is required."]');
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","email","The email field is required."]'));
+    expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
+    expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
+});
+
+it('can capture message for inertia based validation errors for mutliple bags', function () {
+    Route::post('users', function () {
+        return Redirect::back()->withErrors(['email' => 'The email field is required.'])
+            ->withErrors(['email' => 'The email field is required.'], 'custom_1')
+            ->withErrors(['email' => 'The email field is required.'], 'custom_2');
+    })->middleware(['web', InertiaMiddleware::class]);
+
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', true);
+    $response = post('users', [], ['X-Inertia' => '1']);
+
+    $response->assertStatus(302);
+    $response->assertInvalid('email');
+    $response->assertInvalid('email', 'custom_1');
+    $response->assertInvalid('email', 'custom_2');
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email","The email field is required."]');
+    expect($entries[1]->key)->toBe('["POST","\/users","Closure","custom_1","email","The email field is required."]');
+    expect($entries[2]->key)->toBe('["POST","\/users","Closure","custom_2","email","The email field is required."]');
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    expect($aggregates->pluck('key')->all())->toBe([
+        '["POST","\/users","Closure","default","email","The email field is required."]',
+        '["POST","\/users","Closure","custom_1","email","The email field is required."]',
+        '["POST","\/users","Closure","custom_2","email","The email field is required."]',
+        '["POST","\/users","Closure","default","email","The email field is required."]',
+        '["POST","\/users","Closure","custom_1","email","The email field is required."]',
+        '["POST","\/users","Closure","custom_2","email","The email field is required."]',
+        '["POST","\/users","Closure","default","email","The email field is required."]',
+        '["POST","\/users","Closure","custom_1","email","The email field is required."]',
+        '["POST","\/users","Closure","custom_2","email","The email field is required."]',
+        '["POST","\/users","Closure","default","email","The email field is required."]',
+        '["POST","\/users","Closure","custom_1","email","The email field is required."]',
+        '["POST","\/users","Closure","custom_2","email","The email field is required."]',
+    ]);
+    expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 12, 'count'));
+    expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
+});
+
+it('can capture messages for generic validation errors', function () {
+    Route::post('users', fn () => response('<p>An error occurred.</p>', 422))->middleware('web');
+
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', true);
+    $response = post('users');
+
+    $response->assertStatus(422);
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","__laravel_unknown","__laravel_unknown"]');
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","__laravel_unknown","__laravel_unknown"]'));
+    expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
 });
