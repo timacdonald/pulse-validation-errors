@@ -51,7 +51,7 @@ class ValidationErrors
                 return;
             }
 
-            //$this->pulse->lazy(function () use ($component, $exception) {
+            $this->pulse->lazy(function () use ($component, $exception) {
                 if (! $this->shouldSample()) {
                     return;
                 }
@@ -67,7 +67,7 @@ class ValidationErrors
                     'validation_error',
                     json_encode([$request->method(), $path, "livewire: {$component->getName()}", ...$values], flags: JSON_THROW_ON_ERROR),
                 )->count());
-            //});
+            });
         });
     }
 
