@@ -3,12 +3,14 @@
 namespace TiMacDonald\Pulse\Recorders;
 
 use Illuminate\Config\Repository;
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\ValidationException;
+use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Recorders\Concerns\Ignores;
 use Laravel\Pulse\Recorders\Concerns\LivewireRoutes;
@@ -17,13 +19,18 @@ use Livewire\Component;
 use Throwable;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Livewire\Livewire;
+use Livewire\LivewireManager;
+use TiMacDonald\Pulse\LivewireValidationError;
 
 /**
  * @internal
  */
 class ValidationErrors
 {
-    use Ignores, LivewireRoutes, Sampling;
+    use Ignores,
+        Sampling,
+        LivewireRoutes,
+        ConfiguresAfterResolving;
 
     /**
      * The events to listen for.
@@ -44,29 +51,11 @@ class ValidationErrors
         //
     }
 
-    public function register()
+    public function register(callable $record, Application $app): void
     {
-        Livewire::listen('exception', function (Component $component, Throwable $exception) {
-            if (! $exception instanceof ValidationException) {
-                return;
-            }
-
-            $this->pulse->lazy(function () use ($component, $exception) {
-                if (! $this->shouldSample()) {
-                    return;
-                }
-
-                $request = request();
-                [$path] = $this->resolveRoutePath($request);
-
-                if ($this->shouldIgnore($path)) {
-                    return;
-                }
-
-                $this->parseExceptionValidationErrors($exception)?->each(fn ($values) => $this->pulse->record(
-                    'validation_error',
-                    json_encode([$request->method(), $path, "livewire: {$component->getName()}", ...$values], flags: JSON_THROW_ON_ERROR),
-                )->count());
+        $this->afterResolving($app, 'livewire', function (LivewireManager $livewire) use ($record, $app) {
+            $livewire->listen('exception', function (Component $component, Throwable $exception) use ($record, $app) {
+                $exception instanceof ValidationException && $record(new LivewireValidationError($app['request'], $exception));
             });
         });
     }
@@ -74,27 +63,22 @@ class ValidationErrors
     /**
      * Record validation errors.
      */
-    public function record(RequestHandled $event): void
+    public function record(LivewireValidationError|RequestHandled $event): void
     {
-        [$request, $response] = [
-            $event->request,
-            $event->response,
-        ];
-
-        $this->pulse->lazy(function () use ($request, $response) {
+        $this->pulse->lazy(function () use ($event) {
             if (! $this->shouldSample()) {
                 return;
             }
 
-            [$path, $via] = $this->resolveRoutePath($request);
+            [$path, $via] = $this->resolveRoutePath($event->request);
 
             if ($this->shouldIgnore($path)) {
                 return;
             }
 
-            $this->parseValidationErrors($request, $response)->each(fn ($values) => $this->pulse->record(
+            $this->parseValidationErrors($event)->each(fn ($values) => $this->pulse->record(
                 'validation_error',
-                json_encode([$request->method(), $path, $via, ...$values], flags: JSON_THROW_ON_ERROR),
+                json_encode([$event->request->method(), $path, $via, ...$values], flags: JSON_THROW_ON_ERROR),
             )->count());
         });
     }
@@ -104,11 +88,15 @@ class ValidationErrors
      *
      * @return \Illuminate\Support\Collection<int, array{ 0: string, 1: string }>
      */
-    protected function parseValidationErrors(Request $request, SymfonyResponse $response): Collection
+    protected function parseValidationErrors(LivewireValidationError|RequestHandled $event): Collection
     {
-        return $this->parseSessionValidationErrors($request, $response)
-            ?? $this->parseJsonValidationErrors($request, $response)
-            ?? $this->parseUnknownValidationErrors($request, $response)
+        if ($event instanceof LivewireValidationError) {
+            return $this->parseValidationExceptionMessages($event->request, $event->exception);
+        }
+
+        return $this->parseSessionValidationErrors($event->request, $event->response)
+            ?? $this->parseJsonValidationErrors($event->request, $event->response)
+            ?? $this->parseUnknownValidationErrors($event->request, $event->response)
             ?? collect([]);
     }
 
@@ -141,20 +129,20 @@ class ValidationErrors
     }
 
     /**
-     * Parse exception validation errors.
+     * Parse validation exception errors.
      *
      * @return null|\Illuminate\Support\Collection<int, array{ 0: string, 1: string }>
      */
-    protected function parseExceptionValidationErrors(ValidationException $exception): ?Collection
+    protected function parseValidationExceptionMessages(Request $request, ValidationException $exception): ?Collection
     {
         if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true)) {
-            return collect($exception->errors())
+            return collect($exception->validator->errors())
                 ->flatMap(fn ($messages, $inputName) => array_map(
                     fn ($message) => [$exception->errorBag, $inputName, $message], $messages)
                 );
         }
 
-        return collect($exception->errors())->keys();
+        return array_map(fn ($inputName) => [$exception->errorBag, $inputName], $exception->validator->errors()->keys());
     }
 
     /**
