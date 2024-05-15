@@ -58,4 +58,5 @@ Finally, get to improving your user experience. At LaraconUS I gave a [talk on h
 - Supports session based validation errors
 - Supports API validation errors
 - Support Inertia validation errors
+- Support Livewire validation errors
 - Fallback for undetectable validation errors (based on 422 response status)
