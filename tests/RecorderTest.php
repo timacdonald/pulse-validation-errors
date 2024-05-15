@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse as SymfonyJsonResponse;
 use Tests\TestClasses\DummyComponent;
 use TiMacDonald\Pulse\Recorders\ValidationErrors;
 
+use function Pest\Laravel\get;
 use function Pest\Laravel\post;
 use function Pest\Laravel\postJson;
 
@@ -482,4 +483,28 @@ it('can capture messages for generic validation errors', function () {
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","__laravel_unknown","__laravel_unknown"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
+});
+
+it('ignores unknown routes', function () {
+    get('unknown-route')->assertNotFound();
+});
+
+it('can sample', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class.'.sample_rate', 0.1);
+    Route::post('users', fn () => Request::validate([
+        'email' => 'required',
+    ]))->middleware('web');
+
+    post('users');
+    post('users');
+    post('users');
+    post('users');
+    post('users');
+    post('users');
+    post('users');
+    post('users');
+    post('users');
+    post('users');
+
+    expect(Pulse::ingest())->toEqualWithDelta(1, 4);
 });

@@ -65,11 +65,14 @@ class ValidationErrors
      */
     public function record(LivewireValidationError|RequestHandled $event): void
     {
-        $this->pulse->lazy(function () use ($event) {
-            if (! $this->shouldSample()) {
-                return;
-            }
+        if (
+            $event->request->route() === null ||
+            ! $this->shouldSample()
+        ) {
+            return;
+        }
 
+        $this->pulse->lazy(function () use ($event) {
             [$path, $via] = $this->resolveRoutePath($event->request);
 
             if ($this->shouldIgnore($path)) {
