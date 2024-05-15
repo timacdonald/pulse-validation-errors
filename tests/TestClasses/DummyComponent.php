@@ -6,11 +6,11 @@ use Livewire\Component;
 
 class DummyComponent extends Component
 {
-    public string $name = '';
+    public string $email = '';
 
     public function save()
     {
-        $this->validate(['name' => 'required']);
+        $this->validate(['email' => 'required']);
     }
 
     public function render()

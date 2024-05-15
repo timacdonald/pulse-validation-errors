@@ -142,7 +142,8 @@ class ValidationErrors
                 );
         }
 
-        return array_map(fn ($inputName) => [$exception->errorBag, $inputName], $exception->validator->errors()->keys());
+        return collect($exception->validator->errors()->keys())
+            ->map(fn ($inputName) => [$exception->errorBag, $inputName]);
     }
 
     /**
