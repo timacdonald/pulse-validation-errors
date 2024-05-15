@@ -3,7 +3,6 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 abstract class TestCase extends OrchestraTestCase
@@ -25,12 +24,5 @@ abstract class TestCase extends OrchestraTestCase
     protected function defineDatabaseMigrations()
     {
         $this->loadMigrationsFrom(__DIR__.'/../vendor/laravel/pulse/database/migrations');
-    }
-
-    protected function getPackageProviders($app)
-    {
-        return [
-            LivewireServiceProvider::class,
-        ];
     }
 }
