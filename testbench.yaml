@@ -19,6 +19,8 @@ workbench:
     commands: false
     views: true
   build:
+    - create-sqlite-db
+    - db-wipe
     - asset-publish
     - migrate-refresh
   assets:
