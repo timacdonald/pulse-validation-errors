@@ -345,7 +345,7 @@ it('captures inertia validation non post errors', function () {
         'email' => 'required',
     ]))->middleware(['web', InertiaMiddleware::class]);
 
-    $response = put('users', [], ['X-Inertia' => '1']);
+    $response = put('settings', [], ['X-Inertia' => '1']);
 
     $response->assertStatus(303);
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
