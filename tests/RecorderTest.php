@@ -23,8 +23,10 @@ beforeEach(function () {
     Config::set('pulse.ingest.trim.lottery', [1, 1]);
     Pulse::handleExceptionsUsing(fn (Throwable $e) => throw $e);
     Pulse::register([ValidationErrors::class => []]);
+    // TODO delete before merging
     Config::set('pulse.recorders.'.ValidationErrors::class, [
         'sample_rate' => 1,
+        'groups' => [],
     ]);
 });
 
@@ -526,4 +528,28 @@ it('can sample', function () {
     post('users');
 
     expect(Pulse::ingest())->toEqualWithDelta(1, 4);
+});
+
+it('can group URLs', function () {
+    Config::set('pulse.recorders.'.ValidationErrors::class, [
+        'sample_rate' => 1,
+        'groups' => [
+            '#^/users/.*$#' => '/users/{user}',
+        ],
+    ]);
+
+    Route::post('users/timacdonald', fn () => Request::validate([
+        'email' => 'required',
+    ]))->middleware('web');
+
+    $response = post('users/timacdonald');
+
+    $response->assertStatus(302);
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0]->key)->toBe('["POST","\/users\/{user}","Closure","default","email","The email field is required."]');
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users\/{user}","Closure","default","email","The email field is required."]'));
+    expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
+    expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
 });

@@ -12,6 +12,7 @@ use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\ValidationException;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Recorders\Concerns\Groups;
 use Laravel\Pulse\Recorders\Concerns\Ignores;
 use Laravel\Pulse\Recorders\Concerns\LivewireRoutes;
 use Laravel\Pulse\Recorders\Concerns\Sampling;
@@ -27,7 +28,8 @@ use TiMacDonald\Pulse\LivewireValidationError;
  */
 class ValidationErrors
 {
-    use Ignores,
+    use Groups,
+        Ignores,
         Sampling,
         LivewireRoutes,
         ConfiguresAfterResolving;
@@ -78,6 +80,8 @@ class ValidationErrors
             if ($this->shouldIgnore($path)) {
                 return;
             }
+
+            $path = $this->group($path);
 
             $this->parseValidationErrors($event)->each(fn ($values) => $this->pulse->record(
                 'validation_error',
