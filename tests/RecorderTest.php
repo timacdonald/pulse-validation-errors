@@ -341,18 +341,18 @@ it('captures inertia validation errors', function () {
 
 it('captures inertia validation non post errors', function () {
     Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
-    Route::put('settings', fn () => Request::validate([
+    Route::put('users/{user}', fn () => Request::validate([
         'email' => 'required',
     ]))->middleware(['web', InertiaMiddleware::class]);
 
-    $response = put('settings', [], ['X-Inertia' => '1']);
+    $response = put('users/5', [], ['X-Inertia' => '1']);
 
     $response->assertStatus(303);
     $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
     expect($entries)->toHaveCount(1);
-    expect($entries[0]->key)->toBe('["PUT","\/settings","Closure","default","email"]');
+    expect($entries[0]->key)->toBe('["PUT","\/users\/{user}","Closure","default","email"]');
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
-    expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["PUT","\/settings","Closure","default","email"]'));
+    expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["PUT","\/users\/{user}","Closure","default","email"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
 });
