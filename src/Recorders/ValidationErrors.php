@@ -140,6 +140,11 @@ class ValidationErrors
     {
         if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true)) {
             return collect($exception->validator->errors())
+                // Livewire is adding all the errors in a "list" merged in with
+                // the expected validation errors. We will reject any of those
+                // with "list" keys and just maintain those with input name
+                // keys.
+                ->reject(fn ($value, $key) => ! is_string($key))
                 ->flatMap(fn ($messages, $inputName) => array_map(
                     fn ($message) => [$exception->errorBag, $inputName, $message], $messages)
                 );
