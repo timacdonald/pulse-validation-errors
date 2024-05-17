@@ -111,8 +111,8 @@ class ValidationErrors
     protected function parseSessionValidationErrors(Request $request, SymfonyResponse $response): ?Collection
     {
         if (
-            $response->getStatusCode() !== 302 ||
             ! $request->hasSession() ||
+            ! in_array($response->getStatusCode(), [302, 303]) ||
             ! ($errors = $request->session()->get('errors', null)) instanceof ViewErrorBag
         ) {
             return null;
