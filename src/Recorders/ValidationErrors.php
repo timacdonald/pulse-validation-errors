@@ -122,7 +122,7 @@ class ValidationErrors
             return null;
         }
 
-        if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true)) {
+        if ($this->shouldCaptureMessages()) {
             return collect($errors->getBags())
                 ->flatMap(fn ($bag, $bagName) => collect($bag->messages())
                     ->flatMap(fn ($messages, $inputName) => array_map(
@@ -142,7 +142,7 @@ class ValidationErrors
      */
     protected function parseValidationExceptionMessages(Request $request, ValidationException $exception): ?Collection
     {
-        if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true)) {
+        if ($this->shouldCaptureMessages()) {
             return collect($exception->validator->errors())
                 // Livewire is adding all the errors in a "list" merged in with
                 // the expected validation errors. We will reject any of those
@@ -176,7 +176,7 @@ class ValidationErrors
             return null;
         }
 
-        if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true)) {
+        if ($this->shouldCaptureMessages()) {
             return collect($errors)->flatMap(fn ($messages, $inputName) => array_map(
                 fn ($message) => ['default', $inputName, $message], $messages)
             );
@@ -199,7 +199,15 @@ class ValidationErrors
         return collect([[
             'default',
             '__laravel_unknown',
-            ...($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true) ? ['__laravel_unknown'] : [])
+            ...($this->shouldCaptureMessages() ? ['__laravel_unknown'] : [])
         ]]);
+    }
+
+    /**
+     * Determine if the card should capture messages.
+     */
+    protected function shouldCaptureMessages(): bool
+    {
+        return $this->config->get('pulse.recorders.'.static::class.'.capture_messages', true);
     }
 }
