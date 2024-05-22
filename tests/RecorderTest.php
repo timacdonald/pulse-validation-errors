@@ -23,11 +23,6 @@ beforeEach(function () {
     Config::set('pulse.ingest.trim.lottery', [1, 1]);
     Pulse::handleExceptionsUsing(fn (Throwable $e) => throw $e);
     Pulse::register([ValidationErrors::class => []]);
-    // TODO delete before merging
-    Config::set('pulse.recorders.'.ValidationErrors::class, [
-        'sample_rate' => 1,
-        'groups' => [],
-    ]);
 });
 
 afterEach(function () {
