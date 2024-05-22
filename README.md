@@ -29,6 +29,9 @@ return [
                 // '#^/register$#',
                 // '#^/forgot-password$#',
             ],
+            'groups' => [
+                // '#^/products/.*$#' => '/products/{user}',
+            ],
         ],
 
         // ...

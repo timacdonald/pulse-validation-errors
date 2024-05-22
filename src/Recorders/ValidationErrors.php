@@ -12,6 +12,7 @@ use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\ValidationException;
 use Laravel\Pulse\Concerns\ConfiguresAfterResolving;
 use Laravel\Pulse\Pulse;
+use Laravel\Pulse\Recorders\Concerns\Groups;
 use Laravel\Pulse\Recorders\Concerns\Ignores;
 use Laravel\Pulse\Recorders\Concerns\LivewireRoutes;
 use Laravel\Pulse\Recorders\Concerns\Sampling;
@@ -27,7 +28,8 @@ use TiMacDonald\Pulse\LivewireValidationError;
  */
 class ValidationErrors
 {
-    use Ignores,
+    use Groups,
+        Ignores,
         Sampling,
         LivewireRoutes,
         ConfiguresAfterResolving;
@@ -79,6 +81,8 @@ class ValidationErrors
                 return;
             }
 
+            $path = $this->group($path);
+
             $this->parseValidationErrors($event)->each(fn ($values) => $this->pulse->record(
                 'validation_error',
                 json_encode([$event->request->method(), $path, $via, ...$values], flags: JSON_THROW_ON_ERROR),
@@ -118,7 +122,7 @@ class ValidationErrors
             return null;
         }
 
-        if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true)) {
+        if ($this->shouldCaptureMessages()) {
             return collect($errors->getBags())
                 ->flatMap(fn ($bag, $bagName) => collect($bag->messages())
                     ->flatMap(fn ($messages, $inputName) => array_map(
@@ -138,7 +142,7 @@ class ValidationErrors
      */
     protected function parseValidationExceptionMessages(Request $request, ValidationException $exception): ?Collection
     {
-        if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true)) {
+        if ($this->shouldCaptureMessages()) {
             return collect($exception->validator->errors())
                 // Livewire is adding all the errors in a "list" merged in with
                 // the expected validation errors. We will reject any of those
@@ -172,7 +176,7 @@ class ValidationErrors
             return null;
         }
 
-        if ($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true)) {
+        if ($this->shouldCaptureMessages()) {
             return collect($errors)->flatMap(fn ($messages, $inputName) => array_map(
                 fn ($message) => ['default', $inputName, $message], $messages)
             );
@@ -195,7 +199,15 @@ class ValidationErrors
         return collect([[
             'default',
             '__laravel_unknown',
-            ...($this->config->get('pulse.recorders.'.static::class.'.capture_messages', true) ? ['__laravel_unknown'] : [])
+            ...($this->shouldCaptureMessages() ? ['__laravel_unknown'] : [])
         ]]);
+    }
+
+    /**
+     * Determine if the card should capture messages.
+     */
+    protected function shouldCaptureMessages(): bool
+    {
+        return $this->config->get('pulse.recorders.'.static::class.'.capture_messages', true);
     }
 }
