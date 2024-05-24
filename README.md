@@ -63,3 +63,30 @@ Finally, get to improving your user experience. At LaraconUS I gave a [talk on h
 - Support Inertia validation errors
 - Support Livewire validation errors
 - Fallback for undetectable validation errors (based on 422 response status)
+
+## Ignore specific error messages
+
+You may ignore specific endpoints via the recorders `ignore` key, however in some situations you may need more complex ignore rules. You can use [Pulse's built in `Pulse::filter` method](https://laravel.com/docs/11.x/pulse#filtering) to achieve this.
+
+Here is an example where we are ignore a specific error message:
+
+```php
+use Laravel\Pulse\Entry;
+use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Value;
+
+/**
+ * Bootstrap any application services.
+ */
+public function boot(): void
+{
+    Pulse::filter(fn ($entry) => match ($entry->type) {
+        'validation_error' => ! Str::contains($entry->key, [
+            'The password is incorrect.',
+            'Your password has appeared in a data leak.',
+            // ...
+        ]),
+        // ...
+    });
+}
+```

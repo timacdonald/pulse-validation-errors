@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Inertia\Middleware as InertiaMiddleware;
+use Laravel\Pulse\Entry;
 use Laravel\Pulse\Facades\Pulse;
+use Laravel\Pulse\Value;
 use Livewire\Livewire;
 use Symfony\Component\HttpFoundation\JsonResponse as SymfonyJsonResponse;
 use Tests\TestClasses\DummyComponent;
@@ -545,6 +547,32 @@ it('can group URLs', function () {
     expect($entries[0]->key)->toBe('["POST","\/users\/{user}","Closure","default","email","The email field is required."]');
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users\/{user}","Closure","default","email","The email field is required."]'));
+    expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
+    expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
+});
+
+it('can ignore entries based on the error message', function () {
+    Route::post('users', fn () => Request::validate([
+        'name' => 'required',
+        'email' => 'required',
+    ]))->middleware('web');
+
+    Pulse::filter(fn ($entry) => match ($entry->type) {
+        'validation_error' => ! Str::contains($entry->key, [
+            '"The email field is required."',
+        ]),
+        // ...
+    });
+
+    $response = post('users');
+
+    $response->assertStatus(302);
+    $response->assertInvalid(['name', 'email']);
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    expect($entries)->toHaveCount(1);
+    expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","name","The name field is required."]');
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","name","The name field is required."]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
 });
