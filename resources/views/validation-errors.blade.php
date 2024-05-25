@@ -27,8 +27,11 @@
                         <tr wire:key="{{ $error->key_hash }}-spacer" class="h-2 first:h-0"></tr>
                         <tr wire:key="{{ $error->key_hash }}">
                             <x-pulse::td class="overflow-hidden max-w-[1px] space-y-2">
-                                <div class="truncate" title="[{{ $error->name }}{{ $error->bag ? '@'.$error->bag : '' }}] {{ $error->message }}">
-                                    <span class="font-mono">[{{ $error->name }}{{ $error->bag ? '@'.$error->bag : '' }}]</span> <span class="text-gray-500 dark:text-gray-400">{{ $error->message }}</span>
+                                <div class="truncate" title="{{ $error->bag ? $error->bag.' @ ' : '' }}{{ $error->name }}{{ $error->message ? ': '.$error->message : '' }}">
+                                    <span class="font-medium">{{ $error->bag ? $error->bag.' @ ' : '' }}{{ $error->name }}{{ $error->message ? ':' : '' }}</span>
+                                    @if ($error->message)
+                                        <span class="text-gray-500 dark:text-gray-400">{{ $error->message }}</span>
+                                    @endif
                                 </div>
                                 <div class="flex gap-2">
                                     <x-pulse::http-method-badge :method="$error->method" />

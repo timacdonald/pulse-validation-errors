@@ -2,6 +2,7 @@
 
 namespace Workbench\Database\Seeders;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Laravel\Pulse\Facades\Pulse;
 use Orchestra\Testbench\Factories\UserFactory;
@@ -110,6 +111,7 @@ class DatabaseSeeder extends Seeder
     {
         $start = 100;
         shuffle($this->errors);
+        $now = CarbonImmutable::now();
 
         foreach ($this->errors as $error) {
             $start = rand($start, $start + 175);
@@ -117,8 +119,21 @@ class DatabaseSeeder extends Seeder
             for ($i = 0; $i < $start; $i++) {
                 Pulse::record(
                     type: 'validation_error',
+                    timestamp: $now,
                     key: json_encode($error, flags: JSON_THROW_ON_ERROR),
                 )->count();
+            }
+
+            foreach ([2, 7, 25] as $hours) {
+                $lt = rand($start - 175, $start);
+
+                for ($i = 0; $i < $lt; $i++) {
+                    Pulse::record(
+                        type: 'validation_error',
+                        key: json_encode($error, flags: JSON_THROW_ON_ERROR),
+                        timestamp: $now->subHours($hours),
+                    )->count();
+                }
             }
         }
 
