@@ -1,0 +1,23 @@
+providers:
+  - Livewire\LivewireServiceProvider
+  - Laravel\Pulse\PulseServiceProvider
+  - TiMacDonald\Pulse\ValidationErrorsServiceProvider
+  - Workbench\App\Providers\WorkbenchServiceProvider
+
+migrations:
+  - vendor/laravel/pulse/database/migrations
+
+workbench:
+  start: '/pulse'
+  install: true
+  discovers:
+    web: true
+    commands: false
+    views: true
+  build:
+    - create-sqlite-db
+    - db-wipe
+    - asset-publish
+    - migrate-refresh
+  assets:
+    - laravel-assets

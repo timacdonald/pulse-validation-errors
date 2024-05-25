@@ -21,9 +21,9 @@
     },
     "require-dev": {
         "inertiajs/inertia-laravel": "^1.0",
+        "orchestra/pest-plugin-testbench": "^2.0",
         "orchestra/testbench": "^9.0",
-        "pestphp/pest": "^2.0",
-        "pestphp/pest-plugin-laravel": "^2.2"
+        "pestphp/pest": "^2.0"
     },
     "extra": {
         "laravel": {
@@ -46,11 +46,26 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
         }
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
+    "scripts": {
+        "post-autoload-dump": [
+            "@php vendor/bin/testbench package:purge-skeleton --ansi",
+            "@php vendor/bin/testbench package:discover --ansi"
+        ],
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php vendor/bin/testbench workbench:build --ansi",
+            "@php vendor/bin/testbench db:seed --class=\\\\Workbench\\\\Database\\\\Seeders\\\\DatabaseSeeder",
+            "@php vendor/bin/testbench serve"
+        ]
+    },
     "support": {
         "issues": "https://github.com/timacdonald/pulse-validation-errors/issues",
         "source": "https://github.com/timacdonald/pulse-validation-errors/releases/latest",
