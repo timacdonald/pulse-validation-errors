@@ -1,5 +1,5 @@
 <x-pulse>
-    <livewire:pulse.validation-errors cols="8" rows="4" />
+    <livewire:pulse.validation-errors expand cols="8" />
 
     <!-- ... -->
 </x-pulse>
