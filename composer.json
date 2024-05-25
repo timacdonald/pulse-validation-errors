@@ -62,6 +62,7 @@
         "serve": [
             "Composer\\Config::disableProcessTimeout",
             "@php vendor/bin/testbench workbench:build --ansi",
+            "@php vendor/bin/testbench db:seed --class=\\\\Workbench\\\\Database\\\\Seeders\\\\DatabaseSeeder",
             "@php vendor/bin/testbench serve"
         ]
     },

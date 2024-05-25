@@ -7,9 +7,6 @@ providers:
 migrations:
   - vendor/laravel/pulse/database/migrations
 
-seeders:
-  - Workbench\Database\Seeders\DatabaseSeeder
-
 workbench:
   start: '/pulse'
   install: true
@@ -24,4 +21,3 @@ workbench:
     - migrate-refresh
   assets:
     - laravel-assets
-  sync: []
