@@ -1,0 +1,26 @@
+providers:
+  - Livewire\LivewireServiceProvider
+  - Laravel\Pulse\PulseServiceProvider
+  - TiMacDonald\Pulse\ValidationErrorsServiceProvider
+  - Workbench\App\Providers\WorkbenchServiceProvider
+
+migrations:
+  - vendor/laravel/pulse/database/migrations
+
+seeders:
+  - Workbench\Database\Seeders\DatabaseSeeder
+
+workbench:
+  start: '/pulse'
+  user: 'pulse@laravel.com'
+  install: true
+  discovers:
+    web: true
+    commands: false
+    views: true
+  build:
+    - asset-publish
+    - migrate-refresh
+  assets:
+    - laravel-assets
+  sync: []

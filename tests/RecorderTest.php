@@ -17,14 +17,22 @@ use Tests\TestClasses\DummyComponent;
 use TiMacDonald\Pulse\Recorders\ValidationErrors;
 
 use function Pest\Laravel\get;
+use function Orchestra\Testbench\Pest\defineEnvironment;
 use function Pest\Laravel\post;
 use function Pest\Laravel\postJson;
 use function Pest\Laravel\put;
 
 beforeEach(function () {
-    Config::set('pulse.ingest.trim.lottery', [1, 1]);
     Pulse::handleExceptionsUsing(fn (Throwable $e) => throw $e);
-    Pulse::register([ValidationErrors::class => []]);
+});
+
+defineEnvironment(function ($app) {
+    tap($app['config'], function ($config) {
+        $config->set([
+            'pulse.ingest.trim.lottery' => [1, 1],
+            'pulse.recorders.'.ValidationErrors::class => [],
+        ]);
+    });
 });
 
 afterEach(function () {
