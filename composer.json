@@ -56,19 +56,13 @@
     "prefer-stable": true,
     "scripts": {
         "post-autoload-dump": [
-            "@clear",
-            "@prepare"
+            "@php vendor/bin/testbench package:purge-skeleton --ansi",
+            "@php vendor/bin/testbench package:discover --ansi"
         ],
-        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
-        "prepare": "@php vendor/bin/testbench package:discover --ansi",
-        "build": "@php vendor/bin/testbench workbench:build --ansi",
         "serve": [
             "Composer\\Config::disableProcessTimeout",
-            "@build",
+            "@php vendor/bin/testbench workbench:build --ansi",
             "@php vendor/bin/testbench serve"
-        ],
-        "test": [
-            "@php vendor/bin/pest"
         ]
     },
     "support": {

@@ -2,6 +2,7 @@
 
 namespace Workbench\App\Providers;
 
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use TiMacDonald\Pulse\Recorders\ValidationErrors;
 
@@ -12,12 +13,13 @@ class WorkbenchServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        config(['pulse.recorders' => [
-            ValidationErrors::class => [
-                'enabled' => env('PULSE_VALIDATION_ERRORS_ENABLED', true),
-                'sample_rate' => env('PULSE_VALIDATION_ERRORS_SAMPLE_RATE', 1),
+        Config::set([
+            'pulse.recorders' => [
+                ValidationErrors::class => [
+                    // ...
+                ],
             ],
-        ]]);
+        ]);
     }
 
     /**

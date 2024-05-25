@@ -12,7 +12,6 @@ seeders:
 
 workbench:
   start: '/pulse'
-  user: 'pulse@laravel.com'
   install: true
   discovers:
     web: true
