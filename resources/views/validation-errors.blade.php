@@ -1,4 +1,4 @@
-<x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
+<x-pulse::card id="validation-card" :cols="$cols" :rows="$rows" :class="$class">
     <x-pulse::card-header
         name="Validation Errors"
         title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};"
