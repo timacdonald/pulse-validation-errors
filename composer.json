@@ -25,13 +25,6 @@
         "orchestra/testbench": "^9.0",
         "pestphp/pest": "^2.0"
     },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "TiMacDonald\\Pulse\\ValidationErrorsServiceProvider"
-            ]
-        }
-    },
     "config": {
         "preferred-install": "dist",
         "sort-packages": true,
@@ -54,6 +47,13 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
+    "extra": {
+        "laravel": {
+            "providers": [
+                "TiMacDonald\\Pulse\\ValidationErrorsServiceProvider"
+            ]
+        }
+    },
     "scripts": {
         "post-autoload-dump": [
             "@php vendor/bin/testbench package:purge-skeleton --ansi",
@@ -64,10 +64,5 @@
             "@php vendor/bin/testbench workbench:build --ansi",
             "@php vendor/bin/testbench serve"
         ]
-    },
-    "support": {
-        "issues": "https://github.com/timacdonald/pulse-validation-errors/issues",
-        "source": "https://github.com/timacdonald/pulse-validation-errors/releases/latest",
-        "docs": "https://github.com/timacdonald/pulse-validation-errors/blob/master/readme.md"
     }
 }
