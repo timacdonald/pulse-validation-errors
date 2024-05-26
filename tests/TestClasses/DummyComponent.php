@@ -15,6 +15,6 @@ class DummyComponent extends Component
 
     public function render()
     {
-        return "<div>Dummy</div>";
+        return '<div>Dummy</div>';
     }
 }

@@ -53,17 +53,6 @@ jobs:
     strategy:
       matrix:
         php: ['8.1', '8.2', '8.3']
-        illuminate: ['10', '11']
-        include:
-          - illuminate: '10'
-            testbench: '8'
-            phpunit: '10'
-          - illuminate: '11'
-            testbench: '9'
-            phpunit: '11'
-        exclude:
-          - php: '8.1'
-            illuminate: '11'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -76,8 +65,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-php-${{ matrix.php }}-illuminate-${{ matrix.illuminate }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-php-${{ matrix.php }}-illuminate-${{ matrix.illuminate }}-composer-
+          key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-php-${{ matrix.php }}-composer-
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -87,16 +76,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require --no-update \
-            illuminate/http:^${{ matrix.illuminate }} \
-            illuminate/support:^${{ matrix.illuminate }}
-          composer require --no-update --dev \
-            orchestra/testbench:^${{ matrix.testbench }}
           composer update
 
-      - name: Configure PHPUnit
-        run: "if [ -f './phpunit.${{ matrix.phpunit }}.xml' ]; then cp ./phpunit.${{ matrix.phpunit }}.xml ./phpunit.xml; fi"
-
       - name: PHPUnit
-        run: ./vendor/bin/phpunit --do-not-cache-result
+        run: ./vendor/bin/pest --do-not-cache-result
 

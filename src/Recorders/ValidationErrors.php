@@ -17,10 +17,11 @@ use Laravel\Pulse\Recorders\Concerns\Ignores;
 use Laravel\Pulse\Recorders\Concerns\LivewireRoutes;
 use Laravel\Pulse\Recorders\Concerns\Sampling;
 use Livewire\Component;
-use Throwable;
-use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Livewire\Livewire;
 use Livewire\LivewireManager;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Throwable;
+use TiMacDonald\Pulse\LivewireValidationError;
 use TiMacDonald\Pulse\ValidationExceptionOccurred;
 
 /**
@@ -28,11 +29,11 @@ use TiMacDonald\Pulse\ValidationExceptionOccurred;
  */
 class ValidationErrors
 {
-    use Groups,
+    use ConfiguresAfterResolving,
+        Groups,
         Ignores,
-        Sampling,
         LivewireRoutes,
-        ConfiguresAfterResolving;
+        Sampling;
 
     /**
      * The events to listen for.
@@ -216,7 +217,7 @@ class ValidationErrors
         return collect([[
             'default',
             '__laravel_unknown',
-            ...($this->shouldCaptureMessages() ? ['__laravel_unknown'] : [])
+            ...($this->shouldCaptureMessages() ? ['__laravel_unknown'] : []),
         ]]);
     }
 

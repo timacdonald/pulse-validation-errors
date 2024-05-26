@@ -10,17 +10,15 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Middleware as InertiaMiddleware;
-use Laravel\Pulse\Entry;
 use Laravel\Pulse\Facades\Pulse;
-use Laravel\Pulse\Value;
 use Livewire\Livewire;
 use Symfony\Component\HttpFoundation\JsonResponse as SymfonyJsonResponse;
 use Tests\TestClasses\DummyComponent;
 use TiMacDonald\Pulse\Recorders\ValidationErrors;
 use TiMacDonald\Pulse\ValidationExceptionOccurred;
 
-use function Pest\Laravel\get;
 use function Orchestra\Testbench\Pest\defineEnvironment;
+use function Pest\Laravel\get;
 use function Pest\Laravel\post;
 use function Pest\Laravel\postJson;
 use function Pest\Laravel\put;
