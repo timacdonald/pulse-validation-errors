@@ -18,6 +18,8 @@ workbench:
     - create-sqlite-db
     - db-wipe
     - asset-publish
-    - migrate-refresh
+    - migrate:refresh:
+        --seed: true
+        --seeder: \Workbench\Database\Seeders\DatabaseSeeder
   assets:
     - laravel-assets
