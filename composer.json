@@ -23,7 +23,6 @@
         "inertiajs/inertia-laravel": "^1.0",
         "orchestra/pest-plugin-testbench": "^2.0",
         "orchestra/testbench": "^9.0",
-        "orchestra/workbench": "^9.0",
         "pestphp/pest": "^2.0"
     },
     "extra": {
