@@ -80,7 +80,7 @@ use Laravel\Pulse\Value;
  */
 public function boot(): void
 {
-    Pulse::filter(fn (Entry $entry): bool => match ($entry->type) {
+    Pulse::filter(fn ($entry): bool => match ($entry->type) {
         'validation_error' => ! Str::contains($entry->key, [
             'The password is incorrect.',
             'Your password has appeared in a data leak.',
