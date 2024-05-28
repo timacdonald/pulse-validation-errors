@@ -32,24 +32,24 @@ class ValidationErrors extends Card
                 $this->periodAsInterval(),
             )->map(
                 /**
-                 * @param \Illuminate\Support\Collection<int, object{ key: string, count: int }>  $row
+                 * @param  \Illuminate\Support\Collection<int, object{ key: string, count: int }>  $row
                  */
                 function (object $row) {
-                [$method, $uri, $action, $bag, $name, $message] = json_decode($row->key, flags: JSON_THROW_ON_ERROR) + [5 => null];
+                    [$method, $uri, $action, $bag, $name, $message] = json_decode($row->key, flags: JSON_THROW_ON_ERROR) + [5 => null];
 
-                return (object) [
-                    'bag' => match ($bag) {
-                        'default' => null,
-                        default => $bag,
-                    },
-                    'uri' => $uri,
-                    'name' => $name,
-                    'action' => $action,
-                    'method' => $method,
-                    'message' => $message,
-                    'count' => $row->count,
-                    'key_hash' => md5($row->key),
-                ];
+                    return (object) [
+                        'bag' => match ($bag) {
+                            'default' => null,
+                            default => $bag,
+                        },
+                        'uri' => $uri,
+                        'name' => $name,
+                        'action' => $action,
+                        'method' => $method,
+                        'message' => $message,
+                        'count' => $row->count,
+                        'key_hash' => md5($row->key),
+                    ];
                 }
             ));
 
