@@ -32,7 +32,7 @@ class ValidationErrors extends Card
                 $this->periodAsInterval(),
             )->map(
                 /**
-                 * @param  \Illuminate\Support\Collection<int, object{ key: string, count: int }>  $row
+                 * @param  object{ key: string, count: int }  $row
                  */
                 function (object $row) {
                     [$method, $uri, $action, $bag, $name, $message] = json_decode($row->key, flags: JSON_THROW_ON_ERROR) + [5 => null];
@@ -62,7 +62,7 @@ class ValidationErrors extends Card
                 'sample_rate' => 1,
                 'capture_messages' => true,
                 'ignore' => [],
-                ...Config::get('pulse.recorders.'.ValidationErrorsRecorder::class, []),
+                ...Config::get('pulse.recorders.'.ValidationErrorsRecorder::class, []), // @phpstan-ignore arrayUnpacking.nonIterable
             ],
         ]);
     }
