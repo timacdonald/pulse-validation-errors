@@ -9,5 +9,5 @@
         "@default": true
     },
     "minMsi": 100,
-    "testFramework":"phpunit"
+    "testFramework": "pest"
 }
