@@ -49,10 +49,17 @@ jobs:
 
   tests:
     runs-on: ubuntu-latest
-    name: 'PHP ${{ matrix.php }} Illuminate ${{ matrix.illuminate }} Testbench ${{ matrix.testbench }} PHPUnit ${{ matrix.phpunit }}'
+    name: 'PHP ${{ matrix.php }} Testbench ${{ matrix.testbench }}'
     strategy:
       matrix:
         php: ['8.1', '8.2', '8.3']
+        include:
+          - php: '8.1'
+            testbench: '8.0'
+          - php: '8.2'
+            testbench: '9.0'
+          - php: '8.3'
+            testbench: '9.0'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -65,8 +72,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-php-${{ matrix.php }}-composer-
+          key: ${{ runner.os }}-php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-php-${{ matrix.php }}-testbench-${{ matrix.testbench }}-composer-
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -76,6 +83,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          composer require --no-update --dev \
+            orchestra/testbench:^${{ matrix.testbench }}
           composer update
 
       - name: PHPUnit
