@@ -29,13 +29,7 @@ it('renders', function () {
                 'name' => 'email',
                 'message' => null,
                 'count' => 1,
-                'key_hash' => md5(json_encode([
-                    'POST',
-                    '/register',
-                    'App\Http\Controllers\RegisterController@store',
-                    'default',
-                    'email',
-                ])),
+                'key_hash' => md5('["POST","\/register","App\\\\Http\\\\Controllers\\\\RegisterController@store","default","email"]'),
             ]);
 
             return true;
@@ -68,14 +62,7 @@ it('optionally supports', function () {
                 'name' => 'email',
                 'message' => 'The email field is required.',
                 'count' => 1,
-                'key_hash' => md5(json_encode([
-                    'POST',
-                    '/register',
-                    'App\Http\Controllers\RegisterController@store',
-                    'default',
-                    'email',
-                    'The email field is required.',
-                ])),
+                'key_hash' => md5('["POST","\/register","App\\\\Http\\\\Controllers\\\\RegisterController@store","default","email","The email field is required."]'),
             ]);
 
             return true;
@@ -109,14 +96,7 @@ it('supports error bags', function () {
                 'name' => 'email',
                 'message' => 'The email field is required.',
                 'count' => 1,
-                'key_hash' => md5(json_encode([
-                    'POST',
-                    '/register',
-                    'App\Http\Controllers\RegisterController@store',
-                    'custom_1',
-                    'email',
-                    'The email field is required.',
-                ])),
+                'key_hash' => md5('["POST","\/register","App\\\\Http\\\\Controllers\\\\RegisterController@store","custom_1","email","The email field is required."]'),
             ]);
 
             return true;
