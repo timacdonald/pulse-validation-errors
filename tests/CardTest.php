@@ -21,22 +21,22 @@ it('renders', function () {
         ->assertViewHas('errors', function ($errors) {
             expect($errors)->toHaveCount(1);
 
-            expect($errors[0])->toEqual(literal(
-                method: 'POST',
-                uri: '/register',
-                action: 'App\Http\Controllers\RegisterController@store',
-                bag: null,
-                name: 'email',
-                message: null,
-                count: 1,
-                key_hash: md5(json_encode([
+            expect($errors[0])->toEqual((object) [
+                'method' => 'POST',
+                'uri' => '/register',
+                'action' => 'App\Http\Controllers\RegisterController@store',
+                'bag' => null,
+                'name' => 'email',
+                'message' => null,
+                'count' => 1,
+                'key_hash' => md5(json_encode([
                     'POST',
                     '/register',
                     'App\Http\Controllers\RegisterController@store',
                     'default',
                     'email',
                 ])),
-            ));
+            ]);
 
             return true;
         });
@@ -60,15 +60,15 @@ it('optionally supports', function () {
         ->assertViewHas('errors', function ($errors) {
             expect($errors)->toHaveCount(1);
 
-            expect($errors[0])->toEqual(literal(
-                method: 'POST',
-                uri: '/register',
-                action: 'App\Http\Controllers\RegisterController@store',
-                bag: null,
-                name: 'email',
-                message: 'The email field is required.',
-                count: 1,
-                key_hash: md5(json_encode([
+            expect($errors[0])->toEqual((object) [
+                'method' => 'POST',
+                'uri' => '/register',
+                'action' => 'App\Http\Controllers\RegisterController@store',
+                'bag' => null,
+                'name' => 'email',
+                'message' => 'The email field is required.',
+                'count' => 1,
+                'key_hash' => md5(json_encode([
                     'POST',
                     '/register',
                     'App\Http\Controllers\RegisterController@store',
@@ -76,7 +76,7 @@ it('optionally supports', function () {
                     'email',
                     'The email field is required.',
                 ])),
-            ));
+            ]);
 
             return true;
         });
@@ -101,15 +101,15 @@ it('supports error bags', function () {
 
             expect($errors)->toHaveCount(1);
 
-            expect($errors[0])->toEqual(literal(
-                method: 'POST',
-                uri: '/register',
-                action: 'App\Http\Controllers\RegisterController@store',
-                bag: 'custom_1',
-                name: 'email',
-                message: 'The email field is required.',
-                count: 1,
-                key_hash: md5(json_encode([
+            expect($errors[0])->toEqual((object) [
+                'method' => 'POST',
+                'uri' => '/register',
+                'action' => 'App\Http\Controllers\RegisterController@store',
+                'bag' => 'custom_1',
+                'name' => 'email',
+                'message' => 'The email field is required.',
+                'count' => 1,
+                'key_hash' => md5(json_encode([
                     'POST',
                     '/register',
                     'App\Http\Controllers\RegisterController@store',
@@ -117,7 +117,7 @@ it('supports error bags', function () {
                     'email',
                     'The email field is required.',
                 ])),
-            ));
+            ]);
 
             return true;
         });
