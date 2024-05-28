@@ -8,12 +8,12 @@ class DummyComponent extends Component
 {
     public string $email = '';
 
-    public function save()
+    public function save(): void
     {
         $this->validate(['email' => 'required']);
     }
 
-    public function render()
+    public function render(): string
     {
         return '<div>Dummy</div>';
     }
