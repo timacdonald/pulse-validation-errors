@@ -41,8 +41,9 @@ jobs:
       - name: Pint
         run: pint --test
 
-      - name: Infection
-        run: infection --show-mutations
+      # Pest does not support Infection. Might need to migrate to PHPUnit.
+      # - name: Infection
+      #   run: infection --show-mutations
 
       - name: PHPStan
         run: phpstan
