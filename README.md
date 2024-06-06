@@ -63,6 +63,7 @@ Finally, get to improving your user experience. At LaraconUS I gave a [talk on h
 - Support Inertia validation errors
 - Support Livewire validation errors
 - Fallback for undetectable validation errors (based on 422 response status)
+- Capture generic validation exceptions for custom response types
 
 ## Ignore specific error messages
 
@@ -89,5 +90,37 @@ public function boot(): void
         // ...
         default => true,
     });
+}
+```
+
+## Capture validation errors for custom response formats
+
+If you are returning custom response formats, you may see `__laravel_unknown` in the dashboard instead of the input names and error messages. This is because the package parses the response body to determine the validation errors. When the body is in an unrecognised format it is unable to parse the keys and messages from the response.
+
+You should instead dispatch the `ValidationExceptionOccurred` event to pass the validation messages to the card's recorder. You may do this wherever you are converting your exceptions into responses. This usually happens in the `app/Exceptions/Handler`:
+
+```php
+<?php
+
+namespace App\Exceptions\Handler;
+
+use Illuminate\Support\Facades\Event;
+use Illuminate\Validation\ValidationException;
+use Laravel\Pulse\Facades\Pulse;
+use Throwable;
+use TiMacDonald\Pulse\ValidationExceptionOccurred
+
+class Handler
+{
+    // ...
+
+    public function render($request, Throwable $e)
+    {
+        if ($e instanceof ValidationException) {
+            Pulse::rescue(fn () => Event::dispatch(new ValidationExceptionOccurred($request, $e)));
+        }
+
+        // custom exception rendering logic...
+    }
 }
 ```

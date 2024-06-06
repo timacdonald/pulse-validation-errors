@@ -3,10 +3,12 @@
 use Illuminate\Http\JsonResponse as IlluminateJsonResponse;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Middleware as InertiaMiddleware;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Facades\Pulse;
@@ -15,6 +17,7 @@ use Livewire\Livewire;
 use Symfony\Component\HttpFoundation\JsonResponse as SymfonyJsonResponse;
 use Tests\TestClasses\DummyComponent;
 use TiMacDonald\Pulse\Recorders\ValidationErrors;
+use TiMacDonald\Pulse\ValidationExceptionOccurred;
 
 use function Pest\Laravel\get;
 use function Orchestra\Testbench\Pest\defineEnvironment;
@@ -582,5 +585,42 @@ it('can ignore entries based on the error message', function () {
     $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","name","The name field is required."]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
+    expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
+});
+
+it('captures validation errors from custom event', function () {
+    Route::post('users', function () {
+        try {
+            Request::validate([
+                'name' => 'required',
+                'email' => 'required',
+            ]);
+        } catch (ValidationException $e) {
+            Event::dispatch(new ValidationExceptionOccurred(request(), $e));
+
+            throw $e;
+        }
+    })->middleware('web');
+
+    $response = post('users');
+
+    $response->assertStatus(302);
+    $response->assertInvalid(['name', 'email']);
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    expect($entries)->toHaveCount(2);
+    expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","name","The name field is required."]');
+    expect($entries[1]->key)->toBe('["POST","\/users","Closure","default","email","The email field is required."]');
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    expect($aggregates->pluck('key')->all())->toBe([
+        '["POST","\/users","Closure","default","name","The name field is required."]',
+        '["POST","\/users","Closure","default","email","The email field is required."]',
+        '["POST","\/users","Closure","default","name","The name field is required."]',
+        '["POST","\/users","Closure","default","email","The email field is required."]',
+        '["POST","\/users","Closure","default","name","The name field is required."]',
+        '["POST","\/users","Closure","default","email","The email field is required."]',
+        '["POST","\/users","Closure","default","name","The name field is required."]',
+        '["POST","\/users","Closure","default","email","The email field is required."]',
+    ]);
+    expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 8, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
 });
