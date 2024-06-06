@@ -21,7 +21,7 @@ use Throwable;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Livewire\Livewire;
 use Livewire\LivewireManager;
-use TiMacDonald\Pulse\LivewireValidationError;
+use TiMacDonald\Pulse\ValidationExceptionOccurred;
 
 /**
  * @internal
@@ -41,6 +41,7 @@ class ValidationErrors
      */
     public array $listen = [
         RequestHandled::class,
+        ValidationExceptionOccurred::class,
     ];
 
     /**
@@ -57,7 +58,17 @@ class ValidationErrors
     {
         $this->afterResolving($app, 'livewire', function (LivewireManager $livewire) use ($record, $app) {
             $livewire->listen('exception', function (Component $component, Throwable $exception) use ($record, $app) {
-                $exception instanceof ValidationException && $record(new LivewireValidationError($app['request'], $exception));
+                if (! $exception instanceof ValidationException) {
+                    return;
+                }
+
+                with($app['request'], function (Request $request) use ($record, $exception) {
+                    // Livewire can reuse the same request instance when polling or
+                    // performing grouped requests.
+                    $request->attributes->remove('pulse_validation_messages_recorded');
+
+                    $record(new ValidationExceptionOccurred($request, $exception));
+                });
             });
         });
     }
@@ -65,7 +76,7 @@ class ValidationErrors
     /**
      * Record validation errors.
      */
-    public function record(LivewireValidationError|RequestHandled $event): void
+    public function record(ValidationExceptionOccurred|RequestHandled $event): void
     {
         if (
             $event->request->route() === null ||
@@ -75,11 +86,17 @@ class ValidationErrors
         }
 
         $this->pulse->lazy(function () use ($event) {
+            if ($event->request->attributes->has('pulse_validation_messages_recorded')) {
+                return;
+            }
+
             [$path, $via] = $this->resolveRoutePath($event->request);
 
             if ($this->shouldIgnore($path)) {
                 return;
             }
+
+            $event->request->attributes->set('pulse_validation_messages_recorded', true);
 
             $path = $this->group($path);
 
@@ -95,9 +112,9 @@ class ValidationErrors
      *
      * @return \Illuminate\Support\Collection<int, array{ 0: string, 1: string }>
      */
-    protected function parseValidationErrors(LivewireValidationError|RequestHandled $event): Collection
+    protected function parseValidationErrors(ValidationExceptionOccurred|RequestHandled $event): Collection
     {
-        if ($event instanceof LivewireValidationError) {
+        if ($event instanceof ValidationExceptionOccurred) {
             return $this->parseValidationExceptionMessages($event->request, $event->exception);
         }
 
