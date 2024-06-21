@@ -63,7 +63,7 @@ class ValidationErrors
                     return;
                 }
 
-                with($app['request'], function (Request $request) use ($record, $exception) {
+                with($app->make('request'), function (Request $request) use ($record, $exception) {
                     // Livewire can reuse the same request instance when polling or
                     // performing grouped requests.
                     $request->attributes->remove('pulse_validation_messages_recorded');
