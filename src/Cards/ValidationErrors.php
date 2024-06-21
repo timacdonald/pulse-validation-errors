@@ -30,28 +30,24 @@ class ValidationErrors extends Card
                 'validation_error',
                 ['count'],
                 $this->periodAsInterval(),
-            )->map(
-                /**
-                 * @param  object{key: string, count: int}  $row
-                 */
-                function (object $row) {
-                    [$method, $uri, $action, $bag, $name, $message] = json_decode($row->key, flags: JSON_THROW_ON_ERROR) + [5 => null];
+            )->map(function (object $row) {
+                /** @var  object{ key: string, count: int }  $row */
+                [$method, $uri, $action, $bag, $name, $message] = json_decode($row->key, flags: JSON_THROW_ON_ERROR) + [5 => null];
 
-                    return (object) [
-                        'bag' => match ($bag) {
-                            'default' => null,
-                            default => $bag,
-                        },
-                        'uri' => $uri,
-                        'name' => $name,
-                        'action' => $action,
-                        'method' => $method,
-                        'message' => $message,
-                        'count' => $row->count,
-                        'key_hash' => md5($row->key),
-                    ];
-                }
-            ));
+                return (object) [
+                    'bag' => match ($bag) {
+                        'default' => null,
+                        default => $bag,
+                    },
+                    'uri' => $uri,
+                    'name' => $name,
+                    'action' => $action,
+                    'method' => $method,
+                    'message' => $message,
+                    'count' => $row->count,
+                    'key_hash' => md5($row->key),
+                ];
+            }));
 
         return View::make('timacdonald::validation-errors', [
             'time' => $time,
