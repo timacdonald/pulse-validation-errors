@@ -30,7 +30,7 @@ class ValidationErrors extends Card
                 'validation_error',
                 ['count'],
                 $this->periodAsInterval(),
-            )->map(function (object $row) {
+            )->map(function (object $row) { // @phpstan-ignore argument.type
                 /** @var object{ key: string, count: int }  $row */
                 [$method, $uri, $action, $bag, $name, $message] = json_decode($row->key, flags: JSON_THROW_ON_ERROR) + [5 => null];
 
