@@ -214,7 +214,7 @@ class ValidationErrors
             return null;
         }
 
-        return collect([[
+        return collect([[ // @phpstan-ignore return.type
             'default',
             '__laravel_unknown',
             ...($this->shouldCaptureMessages() ? ['__laravel_unknown'] : []),
