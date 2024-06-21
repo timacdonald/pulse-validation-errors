@@ -46,7 +46,9 @@ jobs:
       #   run: infection --show-mutations
 
       - name: PHPStan
-        run: phpstan -v
+        run: |
+          phpstan --version
+          phpstan -v
 
   tests:
     runs-on: ubuntu-latest
