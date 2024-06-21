@@ -52,10 +52,10 @@ it('captures validation errors from the session', function () {
 
     $response->assertStatus(302);
     $response->assertInvalid('email');
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","email"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -71,10 +71,10 @@ it('captures validation errors from the session with dedicated bags', function (
 
     $response->assertStatus(302);
     $response->assertInvalid('email', 'foo');
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","foo","email"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","foo","email"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -94,12 +94,12 @@ it('captures validation errors from the session with multiple bags', function ()
     $response->assertInvalid('email');
     $response->assertInvalid('email', 'custom_1');
     $response->assertInvalid('email', 'custom_2');
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(3);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email"]');
     expect($entries[1]->key)->toBe('["POST","\/users","Closure","custom_1","email"]');
     expect($entries[2]->key)->toBe('["POST","\/users","Closure","custom_2","email"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe([
         '["POST","\/users","Closure","default","email"]',
         '["POST","\/users","Closure","custom_1","email"]',
@@ -127,10 +127,10 @@ it('captures validation error keys from livewire components', function () {
         ->call('save')
         ->assertHasErrors('email');
 
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/livewire-unit-test-endpoint\/random-string","via \/livewire\/update","default","email"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/livewire-unit-test-endpoint\/random-string","via \/livewire\/update","default","email"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -144,10 +144,10 @@ it('captures validation error messages from livewire components', function () {
         ->call('save')
         ->assertHasErrors('email');
 
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/livewire-unit-test-endpoint\/random-string","via \/livewire\/update","default","email","The email field is required."]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/livewire-unit-test-endpoint\/random-string","via \/livewire\/update","default","email","The email field is required."]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -162,9 +162,9 @@ it('does not capture validation errors from redirects when there is no session',
     $response = post('users');
 
     $response->assertStatus(302);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(0);
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(0);
 });
 
@@ -175,9 +175,9 @@ it('does not capture validation errors from redirects when the "errors" key is n
     $response = post('users');
 
     $response->assertStatus(302);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(0);
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates)->toHaveCount(0);
 });
 
@@ -199,10 +199,10 @@ it('captures one entry for a field when multiple errors are present for the give
         ],
     ]);
     $response->assertInvalid(['email' => 'The email field must be at least 5 characters.']);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","email"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -215,10 +215,10 @@ it('captures a generic error when it is unable to parse the validation error fie
     $response = post('users');
 
     $response->assertStatus(422);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","__laravel_unknown"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","__laravel_unknown"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -234,10 +234,10 @@ it('captures API validation errors', function () {
 
     $response->assertStatus(422);
     $response->assertInvalid('email');
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","email"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -252,10 +252,10 @@ it('captures "unknown" API validation error for non Illuminate Json responses', 
 
     $response->assertStatus(422);
     $response->assertInvalid('email');
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","__laravel_unknown"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","__laravel_unknown"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -269,10 +269,10 @@ it('captures "unknown" API validation error for non array Json content', functio
     $response = postJson('users');
 
     $response->assertStatus(422);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","__laravel_unknown"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","__laravel_unknown"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -286,10 +286,10 @@ it('captures "unknown" API validation error for array content mising "errors" ke
     $response = postJson('users');
 
     $response->assertStatus(422);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","__laravel_unknown"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","__laravel_unknown"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -303,10 +303,10 @@ it('captures "unknown" API validation error for "errors" key that does not conta
     $response = postJson('users');
 
     $response->assertStatus(422);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","__laravel_unknown"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","__laravel_unknown"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -320,10 +320,10 @@ it('captures "unknown" API validation error for "errors" key that contains a lis
     $response = postJson('users');
 
     $response->assertStatus(422);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","__laravel_unknown"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","__laravel_unknown"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -338,10 +338,10 @@ it('captures inertia validation errors', function () {
     $response = post('users', [], ['X-Inertia' => '1']);
 
     $response->assertStatus(302);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","email"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -356,10 +356,10 @@ it('captures inertia validation non post errors', function () {
     $response = put('users/5', [], ['X-Inertia' => '1']);
 
     $response->assertStatus(303);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["PUT","\/users\/{user}","Closure","default","email"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["PUT","\/users\/{user}","Closure","default","email"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -379,12 +379,12 @@ it('captures inertia validation errors with multiple bags', function () {
     $response->assertInvalid('email');
     $response->assertInvalid('email', 'custom_1');
     $response->assertInvalid('email', 'custom_2');
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(3);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email"]');
     expect($entries[1]->key)->toBe('["POST","\/users","Closure","custom_1","email"]');
     expect($entries[2]->key)->toBe('["POST","\/users","Closure","custom_2","email"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe([
         '["POST","\/users","Closure","default","email"]',
         '["POST","\/users","Closure","custom_1","email"]',
@@ -413,10 +413,10 @@ it('can capture messages for session based validation errors', function () {
 
     $response->assertStatus(302);
     $response->assertInvalid('email');
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email","The email field is required."]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","email","The email field is required."]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -432,10 +432,10 @@ it('can capture messages for API based validation errors', function () {
 
     $response->assertStatus(422);
     $response->assertInvalid('email');
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email","The email field is required."]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","email","The email field is required."]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -450,10 +450,10 @@ it('can capture messages for inertia based validation errors', function () {
     $response = post('users', [], ['X-Inertia' => '1']);
 
     $response->assertStatus(302);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email","The email field is required."]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","email","The email field is required."]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -473,11 +473,11 @@ it('can capture message for inertia based validation errors for mutliple bags', 
     $response->assertInvalid('email');
     $response->assertInvalid('email', 'custom_1');
     $response->assertInvalid('email', 'custom_2');
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email","The email field is required."]');
     expect($entries[1]->key)->toBe('["POST","\/users","Closure","custom_1","email","The email field is required."]');
     expect($entries[2]->key)->toBe('["POST","\/users","Closure","custom_2","email","The email field is required."]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe([
         '["POST","\/users","Closure","default","email","The email field is required."]',
         '["POST","\/users","Closure","custom_1","email","The email field is required."]',
@@ -503,10 +503,10 @@ it('can capture messages for generic validation errors', function () {
     $response = post('users');
 
     $response->assertStatus(422);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","__laravel_unknown","__laravel_unknown"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","__laravel_unknown","__laravel_unknown"]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -551,10 +551,10 @@ it('can group URLs', function () {
     $response = post('users/timacdonald');
 
     $response->assertStatus(302);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users\/{user}","Closure","default","email","The email field is required."]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users\/{user}","Closure","default","email","The email field is required."]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -577,10 +577,10 @@ it('can ignore entries based on the error message', function () {
 
     $response->assertStatus(302);
     $response->assertInvalid(['name', 'email']);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(1);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","name","The name field is required."]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","name","The name field is required."]'));
     expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
     expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
@@ -604,11 +604,11 @@ it('captures validation errors from custom event', function () {
 
     $response->assertStatus(302);
     $response->assertInvalid(['name', 'email']);
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->whereType('validation_error')->get());
+    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
     expect($entries)->toHaveCount(2);
     expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","name","The name field is required."]');
     expect($entries[1]->key)->toBe('["POST","\/users","Closure","default","email","The email field is required."]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->whereType('validation_error')->orderBy('period')->get());
+    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
     expect($aggregates->pluck('key')->all())->toBe([
         '["POST","\/users","Closure","default","name","The name field is required."]',
         '["POST","\/users","Closure","default","email","The email field is required."]',
