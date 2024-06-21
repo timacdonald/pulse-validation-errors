@@ -63,7 +63,7 @@ class ValidationErrors
                     return;
                 }
 
-                with($app->make('request'), function (Request $request) use ($record, $exception) {
+                with($app['request'], function (Request $request) use ($record, $exception) { // @phpstan-ignore argument.type
                     // Livewire can reuse the same request instance when polling or
                     // performing grouped requests.
                     $request->attributes->remove('pulse_validation_messages_recorded');
@@ -158,7 +158,7 @@ class ValidationErrors
      *
      * @return \Illuminate\Support\Collection<int, array{ 0: string, 1: string, 2?: string }>
      */
-    protected function parseValidationExceptionMessages(Request $request, ValidationException $exception): ?Collection
+    protected function parseValidationExceptionMessages(Request $request, ValidationException $exception): Collection
     {
         if ($this->shouldCaptureMessages()) {
             return collect($exception->validator->errors())
@@ -206,7 +206,7 @@ class ValidationErrors
     /**
      * Parse unknown validation errors.
      *
-     * @return null|\Illuminate\Support\Collection<int, array{ 0: string, 1: string, 2?: string }>
+     * @return null|\Illuminate\Support\Collection<int, non-empty-array{ 0: string, 1: string, 2?: string }>
      */
     protected function parseUnknownValidationErrors(Request $request, SymfonyResponse $response): ?Collection
     {
