@@ -167,7 +167,7 @@ class ValidationErrors
                 // with "list" keys and just maintain those with input name
                 // keys.
                 ->reject(fn (array|string $value, int|string $key) => ! is_string($key))
-                ->flatMap(fn (array $messages, string $inputName) => array_map(
+                ->flatMap(fn (array $messages, string $inputName) => array_map( // @phpstan-ignore argument.type
                     fn (string $message) => [$exception->errorBag, $inputName, $message], $messages)
                 );
         }
@@ -206,7 +206,7 @@ class ValidationErrors
     /**
      * Parse unknown validation errors.
      *
-     * @return null|\Illuminate\Support\Collection<int, non-empty-array{ 0: string, 1: string, 2?: string }>
+     * @return null|\Illuminate\Support\Collection<int, array{ 0: string, 1: string, 2?: string }>
      */
     protected function parseUnknownValidationErrors(Request $request, SymfonyResponse $response): ?Collection
     {
