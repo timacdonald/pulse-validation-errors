@@ -22,7 +22,6 @@ use Livewire\Livewire;
 use Livewire\LivewireManager;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Throwable;
-use TiMacDonald\Pulse\LivewireValidationError;
 use TiMacDonald\Pulse\ValidationExceptionOccurred;
 
 /**
