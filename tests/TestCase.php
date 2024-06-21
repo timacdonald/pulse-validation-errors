@@ -8,6 +8,5 @@ use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 abstract class TestCase extends OrchestraTestCase
 {
-    use RefreshDatabase;
-    use WithWorkbench;
+    use RefreshDatabase, WithWorkbench;
 }

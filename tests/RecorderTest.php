@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use Illuminate\Http\JsonResponse as IlluminateJsonResponse;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -23,62 +25,70 @@ use function Pest\Laravel\post;
 use function Pest\Laravel\postJson;
 use function Pest\Laravel\put;
 
-beforeEach(function () {
-    Pulse::handleExceptionsUsing(fn (Throwable $e) => throw $e);
-});
+class RecorderTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
 
-defineEnvironment(function ($app) {
-    tap($app['config'], function ($config) {
-        $config->set([
+        Pulse::handleExceptionsUsing(fn (Throwable $e) => throw $e);
+
+        Config::set([
             'pulse.ingest.trim.lottery' => [1, 1],
             'pulse.recorders.'.ValidationErrors::class => [],
         ]);
-    });
-});
-
-afterEach(function () {
-    if (Pulse::wantsIngesting()) {
-        throw new RuntimeException('There are pending entries.');
     }
-});
 
-it('captures validation errors from the session', function () {
-    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
-    Route::post('users', fn () => Request::validate([
-        'email' => 'required',
-    ]))->middleware('web');
+    protected function tearDown(): void
+    {
+        if (Pulse::wantsIngesting()) {
+            throw new RuntimeException('There are pending entries.');
+        }
+    }
 
-    $response = post('users');
+    public function test_it_captures_validation_errors_from_the_session()
+    {
+        Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
+        Route::post('users', fn () => Request::validate([
+            'email' => 'required',
+        ]))->middleware('web');
 
-    $response->assertStatus(302);
-    $response->assertInvalid('email');
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0]->key)->toBe('["POST","\/users","Closure","default","email"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
-    expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","default","email"]'));
-    expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
-    expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
-});
+        $response = post('users');
 
-it('captures validation errors from the session with dedicated bags', function () {
-    Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
-    Route::post('users', fn () => Request::validateWithBag('foo', [
-        'email' => 'required',
-    ]))->middleware('web');
+        $response->assertStatus(302);
+        $response->assertInvalid('email');
+        $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
+        $this->assertCount(1, $entries);
+        $this->assertSame($entries[0]->key, '["POST","\/users","Closure","default","email"]');
+        $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
+        $this->assertSame($aggregates->pluck('key')->all(), array_fill(0, 4, '["POST","\/users","Closure","default","email"]'));
+        $this->assertSame($aggregates->pluck('aggregate')->all(), array_fill(0, 4, 'count'));
+        $this->assertTrue($aggregates->pluck('value')->every(fn ($value) => $value == 1.0));
+    }
 
-    $response = post('users');
+    public function test_it_captures_validation_errors_from_the_session_with_dedicated_bags()
+    {
+        Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
+        Route::post('users', fn () => Request::validateWithBag('foo', [
+            'email' => 'required',
+        ]))->middleware('web');
 
-    $response->assertStatus(302);
-    $response->assertInvalid('email', 'foo');
-    $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
-    expect($entries)->toHaveCount(1);
-    expect($entries[0]->key)->toBe('["POST","\/users","Closure","foo","email"]');
-    $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
-    expect($aggregates->pluck('key')->all())->toBe(array_fill(0, 4, '["POST","\/users","Closure","foo","email"]'));
-    expect($aggregates->pluck('aggregate')->all())->toBe(array_fill(0, 4, 'count'));
-    expect($aggregates->pluck('value')->every(fn ($value) => $value == 1.0))->toBe(true);
-});
+        $response = post('users');
+
+        $response->assertStatus(302);
+        $response->assertInvalid('email', 'foo');
+        $entries = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->get());
+        $this->assertCount(1, $entries);
+        $this->assertSame($entries[0]->key, '["POST","\/users","Closure","foo","email"]');
+        $aggregates = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->get());
+        $this->assertSame($aggregates->pluck('key')->all(), array_fill(0, 4, '["POST","\/users","Closure","foo","email"]'));
+        $this->assertSame($aggregates->pluck('aggregate')->all(), array_fill(0, 4, 'count'));
+        $this->assertTrue($aggregates->pluck('value')->every(fn ($value) => $value == 1.0));
+    }
+
+    //
+}
+
 
 it('captures validation errors from the session with multiple bags', function () {
     Config::set('pulse.recorders.'.ValidationErrors::class.'.capture_messages', false);
