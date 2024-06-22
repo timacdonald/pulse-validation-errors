@@ -21,16 +21,12 @@
     },
     "require-dev": {
         "inertiajs/inertia-laravel": "^1.0",
-        "orchestra/pest-plugin-testbench": "^2.0",
         "orchestra/testbench": "^9.0",
-        "pestphp/pest": "^2.0"
+        "phpunit/phpunit": "^11.1"
     },
     "config": {
         "preferred-install": "dist",
-        "sort-packages": true,
-        "allow-plugins": {
-            "pestphp/pest-plugin": true
-        }
+        "sort-packages": true
     },
     "autoload": {
         "psr-4": {

@@ -4,7 +4,6 @@ namespace Tests;
 
 use Laravel\Pulse\Facades\Pulse;
 use Livewire\Livewire;
-use Tests\TestCase;
 use TiMacDonald\Pulse\Cards\ValidationErrors;
 
 class CardTest extends TestCase

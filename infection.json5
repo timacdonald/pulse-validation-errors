@@ -8,6 +8,5 @@
     "mutators": {
         "@default": true
     },
-    "minMsi": 100,
-    "testFramework": "pest"
+    "minMsi": 100
 }

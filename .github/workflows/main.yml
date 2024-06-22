@@ -46,9 +46,7 @@ jobs:
       #   run: infection --show-mutations
 
       - name: PHPStan
-        run: |
-          phpstan --version
-          phpstan -v
+        run: phpstan -v
 
   tests:
     runs-on: ubuntu-latest
@@ -91,5 +89,5 @@ jobs:
           composer update
 
       - name: PHPUnit
-        run: ./vendor/bin/pest --do-not-cache-result
+        run: ./vendor/bin/phpunit --do-not-cache-result
 
