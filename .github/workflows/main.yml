@@ -50,17 +50,20 @@ jobs:
 
   tests:
     runs-on: ubuntu-latest
-    name: 'PHP ${{ matrix.php }} Testbench ${{ matrix.testbench }}'
+    name: 'PHP ${{ matrix.php }} Testbench ${{ matrix.testbench }}' PHPUnit ${{ matrix.phpunit }}
     strategy:
       matrix:
         php: ['8.1', '8.2', '8.3']
         include:
           - php: '8.1'
             testbench: '8.0'
+            phpunit: '10'
           - php: '8.2'
             testbench: '9.0'
+            phpunit: '11'
           - php: '8.3'
             testbench: '9.0'
+            phpunit: '11'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -87,6 +90,9 @@ jobs:
           composer require --no-update --dev \
             orchestra/testbench:^${{ matrix.testbench }}
           composer update
+
+      - name: Configure PHPUnit
+        run: "if [ -f './phpunit.${{ matrix.phpunit }}.xml' ]; then cp ./phpunit.${{ matrix.phpunit }}.xml ./phpunit.xml; fi"
 
       - name: PHPUnit
         run: ./vendor/bin/phpunit --do-not-cache-result

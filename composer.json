@@ -22,7 +22,7 @@
     "require-dev": {
         "inertiajs/inertia-laravel": "^1.0",
         "orchestra/testbench": "^9.0",
-        "phpunit/phpunit": "^11.1"
+        "phpunit/phpunit": "^10.0 || ^11.0"
     },
     "config": {
         "preferred-install": "dist",
