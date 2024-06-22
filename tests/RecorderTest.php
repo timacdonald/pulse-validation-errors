@@ -85,8 +85,6 @@ class RecorderTest extends TestCase
         $this->assertSame($aggregates->pluck('aggregate')->all(), array_fill(0, 4, 'count'));
         $this->assertTrue($aggregates->pluck('value')->every(fn ($value) => $value == 1.0));
     }
-
-    //
 }
 
 
