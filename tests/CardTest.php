@@ -2,9 +2,11 @@
 
 namespace Tests;
 
+use Illuminate\Support\Facades\Config;
 use Laravel\Pulse\Facades\Pulse;
 use Livewire\Livewire;
 use TiMacDonald\Pulse\Cards\ValidationErrors;
+use TiMacDonald\Pulse\Recorders\ValidationErrors as ValidationErrorsRecorder;
 
 class CardTest extends TestCase
 {
@@ -92,7 +94,6 @@ class CardTest extends TestCase
 
         Livewire::test(ValidationErrors::class, ['lazy' => false])
             ->assertViewHas('errors', function ($errors) {
-
                 $this->assertCount(1, $errors);
 
                 $this->assertEquals($errors[0], (object) [
@@ -108,5 +109,41 @@ class CardTest extends TestCase
 
                 return true;
             });
+    }
+
+    public function test_it_shows_sample_rate_when_active()
+    {
+        for ($i = 0; $i < 99; $i++) {
+            Pulse::record(
+                type: 'validation_error',
+                key: json_encode([
+                    'POST',
+                    '/register',
+                    'App\Http\Controllers\RegisterController@store',
+                    'custom_1',
+                    'email',
+                    'The email field is required.',
+                ], flags: JSON_THROW_ON_ERROR),
+            )->count();
+        }
+        Pulse::ingest();
+
+        Livewire::test(ValidationErrors::class, ['lazy' => false])
+            ->assertSee(' 99');
+
+        Config::set('pulse.recorders.'.ValidationErrorsRecorder::class.'.sample_rate', 0.3);
+
+        Livewire::test(ValidationErrors::class, ['lazy' => false])
+            ->assertSeeHtml('title="Sample rate: 0.3, Raw value: 99">~330');
+    }
+
+    public function test_it_provides_custom_css()
+    {
+        /** @var ValidationErrors */
+        $card = app(ValidationErrors::class);
+
+        $card->dehydrate();
+
+        $this->assertStringContainsString('#validation-card', Pulse::css());
     }
 }

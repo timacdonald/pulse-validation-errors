@@ -54,10 +54,7 @@ class ValidationErrors extends Card
             'runAt' => $runAt,
             'errors' => $errors,
             'config' => [
-                'enabled' => true,
                 'sample_rate' => 1,
-                'capture_messages' => true,
-                'ignore' => [],
                 ...Config::get('pulse.recorders.'.ValidationErrorsRecorder::class, []), // @phpstan-ignore arrayUnpacking.nonIterable
             ],
         ]);
