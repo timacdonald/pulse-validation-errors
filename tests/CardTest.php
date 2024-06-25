@@ -129,7 +129,8 @@ class CardTest extends TestCase
         Pulse::ingest();
 
         Livewire::test(ValidationErrors::class, ['lazy' => false])
-            ->assertSee(' 99');
+            ->assertSee(' 99')
+            ->assertDontSee('Sample rate');
 
         Config::set('pulse.recorders.'.ValidationErrorsRecorder::class.'.sample_rate', 0.3);
 
