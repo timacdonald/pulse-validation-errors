@@ -5,6 +5,7 @@ namespace Tests;
 use Illuminate\Support\Facades\Config;
 use Laravel\Pulse\Facades\Pulse;
 use Livewire\Livewire;
+use Livewire\Mechanisms\ComponentRegistry;
 use TiMacDonald\Pulse\Cards\ValidationErrors;
 use TiMacDonald\Pulse\Recorders\ValidationErrors as ValidationErrorsRecorder;
 
@@ -146,5 +147,14 @@ class CardTest extends TestCase
         $card->dehydrate();
 
         $this->assertStringContainsString('#validation-card', Pulse::css());
+    }
+
+    public function test_it_registers_the_card()
+    {
+        $registery = app(ComponentRegistry::class);
+
+        $name = $registery->getName(ValidationErrors::class);
+
+        $this->assertSame('pulse.validation-errors', $name);
     }
 }
