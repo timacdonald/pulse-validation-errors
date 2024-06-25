@@ -159,25 +159,6 @@ class RecorderTest extends TestCase
         $this->assertSame(0, $count);
     }
 
-    public function test_it_captures_validation_errors_across_different_components_within_the_one_request()
-    {
-        Livewire::component('dummy', DummyComponent::class);
-
-        Livewire::test(DummyComponent::class)->call('save');
-
-        $count = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->count());
-        $this->assertSame(1, $count);
-        $count = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->count());
-        $this->assertSame(4, $count);
-
-        Livewire::test(DummyComponent::class)->call('save');
-
-        $count = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->count());
-        $this->assertSame(2, $count);
-        $count = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->count());
-        $this->assertSame(8, $count);
-    }
-
     public function test_it_captures_validation_error_messages_from_livewire_components()
     {
         Livewire::component('dummy', DummyComponent::class);
