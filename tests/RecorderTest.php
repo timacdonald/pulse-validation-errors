@@ -142,6 +142,22 @@ class RecorderTest extends TestCase
         $this->assertTrue($aggregates->pluck('value')->every(fn ($value) => $value == 1.0));
     }
 
+    public function test_it_ignore_livewire_exceptions_that_are_not_validation_exceptions()
+    {
+        Livewire::component('dummy', DummyComponent::class);
+
+        try {
+            Livewire::test(DummyComponent::class)->call('throw');
+        } catch (RuntimeException $e) {
+            $this->assertSame('Whoops!', $e->getMessage());
+        }
+
+        $count = Pulse::ignore(fn () => DB::table('pulse_entries')->where('type', 'validation_error')->count());
+        $this->assertSame(0, $count);
+        $count = Pulse::ignore(fn () => DB::table('pulse_aggregates')->where('type', 'validation_error')->orderBy('period')->count());
+        $this->assertSame(0, $count);
+    }
+
     public function test_it_captures_validation_error_messages_from_livewire_components()
     {
         Livewire::component('dummy', DummyComponent::class);

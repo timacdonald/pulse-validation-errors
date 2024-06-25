@@ -3,6 +3,7 @@
 namespace Tests\TestClasses;
 
 use Livewire\Component;
+use RuntimeException;
 
 class DummyComponent extends Component
 {
@@ -11,6 +12,11 @@ class DummyComponent extends Component
     public function save(): void
     {
         $this->validate(['email' => 'required']);
+    }
+
+    public function throw(): void
+    {
+        throw new RuntimeException('Whoops!');
     }
 
     public function render(): string
