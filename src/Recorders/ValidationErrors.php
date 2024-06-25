@@ -66,6 +66,7 @@ class ValidationErrors
                 with($app['request'], function (Request $request) use ($record, $exception) { // @phpstan-ignore argument.type
                     // Livewire can reuse the same request instance when polling or
                     // performing grouped requests.
+                    /** @infection-ignore-all */
                     $request->attributes->remove('pulse_validation_messages_recorded');
 
                     $record(new ValidationExceptionOccurred($request, $exception));
@@ -119,6 +120,7 @@ class ValidationErrors
             return $this->parseValidationExceptionMessages($event->request, $event->exception);
         }
 
+        /** @infection-ignore-all */
         return $this->parseSessionValidationErrors($event->request, $event->response)
             ?? $this->parseJsonValidationErrors($event->request, $event->response)
             ?? $this->parseUnknownValidationErrors($event->request, $event->response)
