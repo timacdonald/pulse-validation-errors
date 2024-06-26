@@ -5,7 +5,6 @@ namespace Workbench\Database\Seeders;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Laravel\Pulse\Facades\Pulse;
-use Orchestra\Testbench\Factories\UserFactory;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,7 +15,7 @@ class DatabaseSeeder extends Seeder
             'App\Http\Controllers\UserController@store',
             'default',
             'password',
-            'The password field must be at least 8 characters.'
+            'The password field must be at least 8 characters.',
         ],
         [
             'PATCH',
@@ -24,7 +23,7 @@ class DatabaseSeeder extends Seeder
             'App\Http\Controllers\EpisodeController@update',
             'default',
             'version',
-            'The version field is required.'
+            'The version field is required.',
         ],
         [
             'POST',
@@ -32,7 +31,7 @@ class DatabaseSeeder extends Seeder
             'App\Http\Controllers\ShowController@store',
             'default',
             'website',
-            'The website field must start with one of the following: http://, https://.'
+            'The website field must start with one of the following: http://, https://.',
         ],
         [
             'POST',
@@ -40,7 +39,7 @@ class DatabaseSeeder extends Seeder
             'App\Http\Controllers\EpisodeController@store',
             'default',
             'version',
-            'The version field is required.'
+            'The version field is required.',
         ],
         [
             'POST',
@@ -48,7 +47,7 @@ class DatabaseSeeder extends Seeder
             'App\Http\Controllers\EpisodeController@store',
             'default',
             'version',
-            'The version field is required.'
+            'The version field is required.',
         ],
         [
             'DELETE',

@@ -44,7 +44,7 @@
                                 </p>
                             </x-pulse::td>
                             <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold w-32">
-                                @if ($config['sample_rate'] < 1)
+                                @if ($config['sample_rate'] !== 1)
                                     <span title="Sample rate: {{ $config['sample_rate'] }}, Raw value: {{ number_format($error->count) }}">~{{ number_format($error->count * (1 / $config['sample_rate'])) }}</span>
                                 @else
                                     {{ number_format($error->count) }}

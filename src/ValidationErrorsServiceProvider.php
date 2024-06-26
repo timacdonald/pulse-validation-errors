@@ -3,7 +3,6 @@
 namespace TiMacDonald\Pulse;
 
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
-use Illuminate\View\Compilers\BladeCompiler;
 use Livewire\LivewireManager;
 use TiMacDonald\Pulse\Cards\ValidationErrors;
 

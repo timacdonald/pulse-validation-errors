@@ -30,7 +30,8 @@ class ValidationErrors extends Card
                 'validation_error',
                 ['count'],
                 $this->periodAsInterval(),
-            )->map(function ($row) {
+            )->map(function (object $row) { // @phpstan-ignore argument.type
+                /** @var object{ key: string, count: int }  $row */
                 [$method, $uri, $action, $bag, $name, $message] = json_decode($row->key, flags: JSON_THROW_ON_ERROR) + [5 => null];
 
                 return (object) [
@@ -46,19 +47,15 @@ class ValidationErrors extends Card
                     'count' => $row->count,
                     'key_hash' => md5($row->key),
                 ];
-            }),
-        );
+            }));
 
         return View::make('timacdonald::validation-errors', [
             'time' => $time,
             'runAt' => $runAt,
             'errors' => $errors,
             'config' => [
-                'enabled' => true,
                 'sample_rate' => 1,
-                'capture_messages' => true,
-                'ignore' => [],
-                ...Config::get('pulse.recorders.'.ValidationErrorsRecorder::class, []),
+                ...Config::get('pulse.recorders.'.ValidationErrorsRecorder::class, []), // @phpstan-ignore arrayUnpacking.nonIterable
             ],
         ]);
     }

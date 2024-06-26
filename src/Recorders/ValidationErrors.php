@@ -3,6 +3,7 @@
 namespace TiMacDonald\Pulse\Recorders;
 
 use Illuminate\Config\Repository;
+use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Http\JsonResponse;
@@ -17,10 +18,10 @@ use Laravel\Pulse\Recorders\Concerns\Ignores;
 use Laravel\Pulse\Recorders\Concerns\LivewireRoutes;
 use Laravel\Pulse\Recorders\Concerns\Sampling;
 use Livewire\Component;
-use Throwable;
-use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Livewire\Livewire;
 use Livewire\LivewireManager;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Throwable;
 use TiMacDonald\Pulse\ValidationExceptionOccurred;
 
 /**
@@ -28,11 +29,11 @@ use TiMacDonald\Pulse\ValidationExceptionOccurred;
  */
 class ValidationErrors
 {
-    use Groups,
+    use ConfiguresAfterResolving,
+        Groups,
         Ignores,
-        Sampling,
         LivewireRoutes,
-        ConfiguresAfterResolving;
+        Sampling;
 
     /**
      * The events to listen for.
@@ -62,9 +63,10 @@ class ValidationErrors
                     return;
                 }
 
-                with($app['request'], function (Request $request) use ($record, $exception) {
+                with($app['request'], function (Request $request) use ($record, $exception) { // @phpstan-ignore argument.type
                     // Livewire can reuse the same request instance when polling or
                     // performing grouped requests.
+                    /** @infection-ignore-all */
                     $request->attributes->remove('pulse_validation_messages_recorded');
 
                     $record(new ValidationExceptionOccurred($request, $exception));
@@ -86,7 +88,7 @@ class ValidationErrors
         }
 
         $this->pulse->lazy(function () use ($event) {
-            if ($event->request->attributes->has('pulse_validation_messages_recorded')) {
+            if ($event->request->attributes->get('pulse_validation_messages_recorded')) {
                 return;
             }
 
@@ -100,7 +102,7 @@ class ValidationErrors
 
             $path = $this->group($path);
 
-            $this->parseValidationErrors($event)->each(fn ($values) => $this->pulse->record(
+            $this->parseValidationErrors($event)->each(fn (array $values) => $this->pulse->record(
                 'validation_error',
                 json_encode([$event->request->method(), $path, $via, ...$values], flags: JSON_THROW_ON_ERROR),
             )->count());
@@ -110,7 +112,7 @@ class ValidationErrors
     /**
      * Parse validation errors.
      *
-     * @return \Illuminate\Support\Collection<int, array{ 0: string, 1: string }>
+     * @return \Illuminate\Support\Collection<int, array{ 0: string, 1: string, 2?: string }>
      */
     protected function parseValidationErrors(ValidationExceptionOccurred|RequestHandled $event): Collection
     {
@@ -118,6 +120,7 @@ class ValidationErrors
             return $this->parseValidationExceptionMessages($event->request, $event->exception);
         }
 
+        /** @infection-ignore-all */
         return $this->parseSessionValidationErrors($event->request, $event->response)
             ?? $this->parseJsonValidationErrors($event->request, $event->response)
             ?? $this->parseUnknownValidationErrors($event->request, $event->response)
@@ -127,7 +130,7 @@ class ValidationErrors
     /**
      * Parse session validation errors.
      *
-     * @return null|\Illuminate\Support\Collection<int, array{ 0: string, 1: string }>
+     * @return null|\Illuminate\Support\Collection<int, array{ 0: string, 1: string, 2?: string }>
      */
     protected function parseSessionValidationErrors(Request $request, SymfonyResponse $response): ?Collection
     {
@@ -141,23 +144,23 @@ class ValidationErrors
 
         if ($this->shouldCaptureMessages()) {
             return collect($errors->getBags())
-                ->flatMap(fn ($bag, $bagName) => collect($bag->messages())
-                    ->flatMap(fn ($messages, $inputName) => array_map(
-                        fn ($message) => [$bagName, $inputName, $message], $messages)
+                ->flatMap(fn (MessageBag $bag, string $bagName) => collect($bag->getMessages())
+                    ->flatMap(fn (array $messages, string $inputName) => array_map(
+                        fn (string $message) => [$bagName, $inputName, $message], $messages)
                     ));
         }
 
         return collect($errors->getBags())->flatMap(
-            fn ($bag, $bagName) => array_map(fn ($inputName) => [$bagName, $inputName], $bag->keys())
+            fn (MessageBag $bag, string $bagName) => array_map(fn (string $inputName) => [$bagName, $inputName], $bag->keys())
         );
     }
 
     /**
      * Parse validation exception errors.
      *
-     * @return null|\Illuminate\Support\Collection<int, array{ 0: string, 1: string }>
+     * @return \Illuminate\Support\Collection<int, array{ 0: string, 1: string, 2?: string }>
      */
-    protected function parseValidationExceptionMessages(Request $request, ValidationException $exception): ?Collection
+    protected function parseValidationExceptionMessages(Request $request, ValidationException $exception): Collection
     {
         if ($this->shouldCaptureMessages()) {
             return collect($exception->validator->errors())
@@ -165,20 +168,20 @@ class ValidationErrors
                 // the expected validation errors. We will reject any of those
                 // with "list" keys and just maintain those with input name
                 // keys.
-                ->reject(fn ($value, $key) => ! is_string($key))
-                ->flatMap(fn ($messages, $inputName) => array_map(
-                    fn ($message) => [$exception->errorBag, $inputName, $message], $messages)
+                ->reject(fn (array|string $value, int|string $key) => ! is_string($key))
+                ->flatMap(fn (array $messages, string $inputName) => array_map( // @phpstan-ignore argument.type
+                    fn (string $message) => [$exception->errorBag, $inputName, $message], $messages)
                 );
         }
 
         return collect($exception->validator->errors()->keys())
-            ->map(fn ($inputName) => [$exception->errorBag, $inputName]);
+            ->map(fn (string $inputName) => [$exception->errorBag, $inputName]);
     }
 
     /**
      * Parse JSON validation errors.
      *
-     * @return null|\Illuminate\Support\Collection<int, array{ 0: string, 1: string }>
+     * @return null|\Illuminate\Support\Collection<int, array{ 0: string, 1: string, 2?: string }>
      */
     protected function parseJsonValidationErrors(Request $request, SymfonyResponse $response): ?Collection
     {
@@ -194,18 +197,18 @@ class ValidationErrors
         }
 
         if ($this->shouldCaptureMessages()) {
-            return collect($errors)->flatMap(fn ($messages, $inputName) => array_map(
-                fn ($message) => ['default', $inputName, $message], $messages)
+            return collect($errors)->flatMap(fn (array $messages, string $inputName) => array_map(
+                fn (string $message) => ['default', $inputName, $message], $messages)
             );
         }
 
-        return collect($errors)->keys()->map(fn ($inputName) => ['default', $inputName]);
+        return collect($errors)->keys()->map(fn (string $inputName) => ['default', $inputName]);
     }
 
     /**
      * Parse unknown validation errors.
      *
-     * @return null|\Illuminate\Support\Collection<int, array{ 0: string, 1: string }>
+     * @return null|\Illuminate\Support\Collection<int, array{ 0: string, 1: string, 2?: string }>
      */
     protected function parseUnknownValidationErrors(Request $request, SymfonyResponse $response): ?Collection
     {
@@ -213,10 +216,10 @@ class ValidationErrors
             return null;
         }
 
-        return collect([[
+        return collect([[ // @phpstan-ignore return.type
             'default',
             '__laravel_unknown',
-            ...($this->shouldCaptureMessages() ? ['__laravel_unknown'] : [])
+            ...($this->shouldCaptureMessages() ? ['__laravel_unknown'] : []),
         ]]);
     }
 
@@ -225,6 +228,6 @@ class ValidationErrors
      */
     protected function shouldCaptureMessages(): bool
     {
-        return $this->config->get('pulse.recorders.'.static::class.'.capture_messages', true);
+        return $this->config->get('pulse.recorders.'.static::class.'.capture_messages', true); // @phpstan-ignore return.type
     }
 }
