@@ -39,9 +39,6 @@ return [
 ];
 ```
 
-> [!Warning]
-> Make sure to configure the `sample_rate` for your application. This card may capture a lot of data if you have a lot of users hitting validation errors.
-
 Next, add the card to your `resources/views/vendor/pulse/dashboard.php`:
 
 ```blade
@@ -57,11 +54,11 @@ Finally, get to improving your user experience. At LaraconUS I gave a [talk on h
 
 ## Features
 
-- Supports multiple error bags
 - Supports session based validation errors
 - Supports API validation errors
 - Support Inertia validation errors
 - Support Livewire validation errors
+- Supports multiple error bags
 - Fallback for undetectable validation errors (based on 422 response status)
 - Capture generic validation exceptions for custom response types
 
