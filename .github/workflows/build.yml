@@ -20,7 +20,7 @@ jobs:
           node-version: latest
 
       - name: Install NPM dependencies
-        run: npm ci
+        run: npm install
 
       - name: Compile assets
         run: npm run build
