@@ -88,7 +88,7 @@ class ValidationErrors
         }
 
         $this->pulse->lazy(function () use ($event) {
-            if ($event->request->attributes->has('pulse_validation_messages_recorded')) {
+            if ($event->request->attributes->get('pulse_validation_messages_recorded')) {
                 return;
             }
 
